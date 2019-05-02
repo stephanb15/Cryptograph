@@ -1,0 +1,19 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Programmierprojekt - Verschlüsselungsalgorithmen\\Gruppe 1 -  Pachinger Pia}
+\author{Jakob Lanser a11806538@unet.univie.ac.at\\Saifullah Totakhel a11713253@unet.univie.ac.at\\Stephan Bornberg a01506156@unet.univie.ac.at}
+
+\begin{document}
+
+\maketitle
+
+Es werden einfache Algorithmen verfasst, die einen deutlich verständlichen "Klartext" in einen nicht mehr verständlichen "Geheimtext" ("Chiffrat") konvertieren.\\
+Jeder Algorithmus beschreibt eine unterschiedliche Chiffre, mit deren Hilfe ein vom Benutzer eingegebener Text verschlüsselt wird.\\
+Folgende Chiffren sind für das Projekt vorgesehen :\\
+1. Transpositionschiffre - Zeichen werden nach einem vorgegebenem Schema umsortiert.\\
+2. Substitutionschiffre - Zeichen werden durch Zeichen eines Chiffrentextes ersetzt.\\
+3. Produktchiffre - Eine Komposition aus Transpositionschiffren und Substitutionschiffre.
+
+
+\end{document}
