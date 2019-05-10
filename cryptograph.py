@@ -40,6 +40,7 @@ class Encrypt:
             print("    try a different data type")
 
     def RSA(self, pubkey):
+
         #input the RSA public key tupel "pubkey" 
         return self.int
 
