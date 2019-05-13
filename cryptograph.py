@@ -31,18 +31,16 @@ def extndEuclid(a,b):
         saveS=stupel[1]
         stupel[1]=stupel[0]-stupel[1]*q
         stupel[0]=saveS
-        print(stupel,rtupel)
+        #uncooment for tests
+        #print(rtupel,stupel)
     
-    return (rtupel,stupel)
-    
-print(extndEuclid(1234,10))
-
+    return (rtupel[0],stupel[0])
 
 class Keys:
     def RSA(prime1,prime2):
         #find the keys for RSA encryption decryption
         n=prime1*prime2
-        phin=(prime1-1)(prime2-1)
+        phin=(prime1-1)*(prime2-1)
         enorm=2**16+1
         #a usual vale for the encryption exponent (performance)
         e=enorm
@@ -52,9 +50,9 @@ class Keys:
             #which might either be a performacne issue or a security issue
         #find a "d" with d*e kongurent 1 module phin
         public=(e,n)
-        private=d
+        d=extndEuclid(e,n)[1]
+        private=(d,(prime1,prime2))
         return (public,private)
-
 
 
 class Encrypt:
@@ -71,11 +69,37 @@ class Encrypt:
             print("    try a different data type")
 
     def RSA(self, pubkey):
-
         #input the RSA public key tupel "pubkey" 
-        return self.int
+        encryption=(self.int)**pubkey[0] % pubkey[1]
+        return encryption
 
 
-x=Encrypt(11341)
-print(x.RSA(11))
+class Decrypt:
+    def __init__(self,x):
+        #input is to be the data which you like to decrypt
+        if isinstance(x,float):
+            self.float=x
+        elif isinstance(x,int):
+            self.int=x
+        elif isinstance(x,str):
+            self.str=x
+        else:
+            print("Your input",x,"is not understood by this class")
+            print("    try a different data type")
+    def RSA(self, privkey):
+        #input the RSA public key tupel "pubkey" 
+        decryption=(self.int)**privkey[0] % (privkey[1][0]*privkey[1][1])
+        return decryption
+
 GUI()
+
+###Testing functions
+x=Encrypt(11341)
+y=Keys
+z=Decrypt(x.RSA(mykeys[0]))
+mykeys=y.RSA(15485857,15485863)
+print(x.RSA(mykeys[0]))
+print(mykeys)
+#print(z.RSA(mykeys[1]))
+
+
