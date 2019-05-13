@@ -25,17 +25,17 @@ def extndEuclid(a,b):
     while not(rtupel[0]==0 or rtupel[1]==0):
         q=rtupel[0]//rtupel[1]
         saveR=rtupel[1]
-        rtupel[1]=rtupel[0]+rtupel[1]-q*rtupel[1]
+        rtupel[1]=rtupel[0]-q*rtupel[1]
         rtupel[0]=saveR
         
         saveS=stupel[1]
-        stupel[1]=stupel[0]-stupel[0]*q
+        stupel[1]=stupel[0]-stupel[1]*q
         stupel[0]=saveS
         print(stupel,rtupel)
     
     return (rtupel,stupel)
     
-print(extndEuclid(1234,1023))
+print(extndEuclid(1234,10))
 
 
 class Keys:
