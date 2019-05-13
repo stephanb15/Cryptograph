@@ -1,10 +1,41 @@
 import math
+import tkinter as tk
+import numpy as np
+
+def GUI():
+    root = tk.Tk()
+    button=tk.Button(root,text='Encrypt/send Message') # insert command=Encryptionfunction
+    button.grid(row=2,column=1)
+    root.title("Cryptograph")
+    iotext=tk.Text(root)
+    iotext.grid(row=1,column=1)
+    menubar=tk.Menu(root)
+    filemenu=tk.Menu(menubar,tearoff=0)
+    menubar.add_cascade(label='Datei',menu=filemenu)
+    menubar.add_cascade(label='Help',menu=filemenu)
+    filemenu.add_command(label='Beenden',command=root.quit)
+    filemenu.add_command(label='Insert File',command=root.quit)
+    root.config(menu=menubar)
+    root.mainloop()
 
 
-def extndEuclid(x1,x):
-    ...
+def extndEuclid(a,b):
+    rtupel=[a,b]
+    stupel=[1,0]
+    while not(rtupel[0]==0 or rtupel[1]==0):
+        q=rtupel[0]//rtupel[1]
+        saveR=rtupel[1]
+        rtupel[1]=rtupel[0]+rtupel[1]-q*rtupel[1]
+        rtupel[0]=saveR
+        
+        saveS=stupel[1]
+        stupel[1]=stupel[0]-stupel[0]*q
+        stupel[0]=saveS
+        print(stupel,rtupel)
     
-
+    return (rtupel,stupel)
+    
+print(extndEuclid(1234,1023))
 
 
 class Keys:
@@ -47,3 +78,4 @@ class Encrypt:
 
 x=Encrypt(11341)
 print(x.RSA(11))
+GUI()
