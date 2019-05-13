@@ -32,9 +32,35 @@ def extndEuclid(a,b):
         stupel[1]=stupel[0]-stupel[1]*q
         stupel[0]=saveS
         #uncooment for tests
-        #print(rtupel,stupel)
+        print(rtupel,stupel)
     
     return (rtupel[0],stupel[0])
+
+def fastexp(base,power):
+    #A function to make fast product calculation a^n,
+    #where a, n are integers in this implementation
+    #this function unfortunately is quiet as fast as the pythons power **
+    #so imporvison might be necessary if possible
+    
+    if power<=0:
+        #this schouldn't actually occure for the public key
+        return base**power
+    
+    binpow_str=bin(power)
+    #convert binary string to list of "0" and "1"s
+    binpow_intarr=[]
+    
+    for i in range(2,len(binpow_str)):
+        print(binpow_str)
+        binpow_intarr.append(int(binpow_str[i]))
+    binpow_intarr=binpow_intarr[::-1]
+    #iterativ fast expoential calculation
+    result=1
+    for i in range(len(binpow_intarr)):
+        if binpow_intarr[i]==1:
+            result*=base**(2**i)
+    return result
+
 
 class Keys:
     def RSA(prime1,prime2):
@@ -43,11 +69,12 @@ class Keys:
         phin=(prime1-1)*(prime2-1)
         enorm=2**16+1
         #a usual vale for the encryption exponent (performance)
-        e=enorm
-        if enorm > phin:
+        e=3
+        #e=enorm
+        if e > phin:
             print("Error: choose greater prime numbers")
             # or in case calculate a e <phin with gcd(e,phin)=1
-            #which might either be a performacne issue or a security issue
+            #which might either be a performance issue or a security issue
         #find a "d" with d*e kongurent 1 module phin
         public=(e,n)
         d=extndEuclid(e,n)[1]
@@ -88,18 +115,23 @@ class Decrypt:
             print("    try a different data type")
     def RSA(self, privkey):
         #input the RSA public key tupel "pubkey" 
-        decryption=(self.int)**privkey[0] % (privkey[1][0]*privkey[1][1])
+        decryption=fastexp((self.int),privkey[0]) % (privkey[1][0]*privkey[1][1])
         return decryption
 
 GUI()
 
 ###Testing functions
-x=Encrypt(11341)
+x=Encrypt(23)
 y=Keys
-z=Decrypt(x.RSA(mykeys[0]))
-mykeys=y.RSA(15485857,15485863)
-print(x.RSA(mykeys[0]))
+
+mykeys=y.RSA(11,23)
 print(mykeys)
-#print(z.RSA(mykeys[1]))
+
+mysterytext=x.RSA(mykeys[0])
+print(mysterytext)
+
+z=Decrypt(mysterytext)
+readblmess=z.RSA(mykeys[1])
+print(readblmess)
 
 
