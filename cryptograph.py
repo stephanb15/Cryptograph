@@ -2,7 +2,7 @@ import math
 import tkinter as tk
 import numpy as np
 import json
-
+import urllib.request
 
 namevar="Mustermann"
     
@@ -45,6 +45,25 @@ class GUI:
         
     def end(self):
         self.init.mainloop()
+
+class json:
+    def __init__(self):
+        self.serveradress="https://www.unet.univie.ac.at/~stephanb15/Applications/Cryptograph/"
+        self.username="stephanb15"
+
+    def pull(self,UserID):
+        #get the pulblic Key, messages from user :UserID
+        #https://docs.python.org/3/howto/urllib2.html
+        #https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
+        with urllib.request.urlopen(self.serveradress+UserID +".json") as response:
+            data=response.read().decode()
+            #print(self.serveradress+UserID+".json")
+            #print(data)
+            
+    def push(self):
+        #Push the pulblic Key, and messages to self.username
+        #maybe try "pip install ssh" but i would not like to do it with that
+        ...
 
 
 def extndEuclid(a,b):
@@ -178,7 +197,7 @@ gui.chatbox()
 gui.chatlist()
 gui.end()
 
-###Testing functions
+###Testing Encryption
 e=Encrypt(234076)
 k=Keys
 
@@ -193,3 +212,6 @@ readblmess=d.RSA(mykeys[1])
 print(readblmess)
 
 
+#Testing Json
+j=json()
+j.pull("plain")

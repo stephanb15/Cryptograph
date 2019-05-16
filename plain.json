@@ -1,8 +1,12 @@
 {
-   "UserID" :"maxmustermann",
+   "UserID" :"Alice",
    "publicKey" : {
                   "Evalue" : 1234567890  ,
                   "Nvalue" : 1234567890
                  },
-    "message" : ["",""]
+    "message" : 
+                {
+                "Bob1": ["",""],
+                "Bob2": ["",""]
+                }
 }
