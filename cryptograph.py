@@ -32,16 +32,37 @@ def extndEuclid(a,b):
         stupel[1]=stupel[0]-stupel[1]*q
         stupel[0]=saveS
         #uncooment for tests
-        print(rtupel,stupel)
+        #print(rtupel,stupel)
     
     return (rtupel[0],stupel[0])
+
+def findrepres(rep,mod,bmax,bmin):
+    #finds a representant of an equivalence class in certain borders
+    #mathematically: trys to find a  $$ rep \in (bmin,bmax) $$
+    #where the parantheses "(" and ")" indicate $$ bmin,bmax \notin (bmin,bmax) $$
+    #thus indicate an open intervall
+    #This function might loop infinitly if non proper borders are given
+    if bmin>bmax:
+        bmax,bmin=bmin,bmax
+    if rep >= bmax:
+        while rep>=bmax:
+            rep=rep-mod
+    if rep <= bmin:
+        while rep<=bmin:
+            rep=rep+mod
+    #print("bmin",bmin,"bmax",bmax,"rep",rep,"mod",mod)
+    return(rep)
+    #Maybe write an error message when oscillation occurs:
+    #Thus print a message when rep became >=bmax and later <=bmin
+    #so then we know there is no such element $$ rep \in (bmin,bmax) $$
+        
 
 def fastexp(base,power):
     #A function to make fast product calculation a^n,
     #where a, n are integers in this implementation
     #this function unfortunately is quiet as fast as the pythons power **
     #so imporvison might be necessary if possible
-    
+    #print("power",power)
     if power<=0:
         #this schouldn't actually occure for the public key
         return base**power
@@ -51,7 +72,7 @@ def fastexp(base,power):
     binpow_intarr=[]
     
     for i in range(2,len(binpow_str)):
-        print(binpow_str)
+        #print(binpow_str)
         binpow_intarr.append(int(binpow_str[i]))
     binpow_intarr=binpow_intarr[::-1]
     #iterativ fast expoential calculation
@@ -67,7 +88,7 @@ class Keys:
         #find the keys for RSA encryption decryption
         n=prime1*prime2
         phin=(prime1-1)*(prime2-1)
-        enorm=2**16+1
+        #enorm=2**16+1
         #a usual vale for the encryption exponent (performance)
         e=3
         #e=enorm
@@ -78,6 +99,8 @@ class Keys:
         #find a "d" with d*e kongurent 1 module phin
         public=(e,n)
         d=extndEuclid(e,n)[1]
+        #Find a representant inside the proper borders
+        d=findrepres(d,phin,phin,1)
         private=(d,(prime1,prime2))
         return (public,private)
 
@@ -124,7 +147,7 @@ GUI()
 x=Encrypt(23)
 y=Keys
 
-mykeys=y.RSA(11,23)
+mykeys=y.RSA(653,659)
 print(mykeys)
 
 mysterytext=x.RSA(mykeys[0])
