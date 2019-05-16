@@ -11,3 +11,7 @@ A program to create executables
 https://stackoverflow.com/questions/5458048/how-to-make-a-python-script-standalone-executable-to-run-without-any-dependency
    pip install pyinstaller
    pyinstaller cryptograph.py
+
+My university webpage- the folder Cryptograph is supposed to contain files of the form plain.json however named
+as the users - so "stephanb15.json" for exammple
+https://www.unet.univie.ac.at/~stephanb15/Applications/Cryptograph/plain.json
