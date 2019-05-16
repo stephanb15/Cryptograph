@@ -22,7 +22,7 @@ def GUI():
 def extndEuclid(a,b):
     rtupel=[a,b]
     stupel=[1,0]
-    while not(rtupel[0]==0 or rtupel[1]==0):
+    while not(rtupel[1]==0):
         q=rtupel[0]//rtupel[1]
         saveR=rtupel[1]
         rtupel[1]=rtupel[0]-q*rtupel[1]
@@ -88,17 +88,17 @@ class Keys:
         #find the keys for RSA encryption decryption
         n=prime1*prime2
         phin=(prime1-1)*(prime2-1)
-        #enorm=2**16+1
-        #a usual vale for the encryption exponent (performance)
-        e=3
-        #e=enorm
+        enorm=2**16+1
+        #a usual value for the encryption exponent (performance)
+        #e=23
+        e=enorm
         if e > phin:
             print("Error: choose greater prime numbers")
             # or in case calculate a e <phin with gcd(e,phin)=1
             #which might either be a performance issue or a security issue
         #find a "d" with d*e kongurent 1 module phin
         public=(e,n)
-        d=extndEuclid(e,n)[1]
+        d=extndEuclid(e,phin)[1]
         #Find a representant inside the proper borders
         d=findrepres(d,phin,phin,1)
         private=(d,(prime1,prime2))
@@ -139,22 +139,23 @@ class Decrypt:
     def RSA(self, privkey):
         #input the RSA public key tupel "pubkey" 
         decryption=fastexp((self.int),privkey[0]) % (privkey[1][0]*privkey[1][1])
+        #decryption=self.int**privkey[0] % (privkey[1][0]*privkey[1][1])
         return decryption
 
 GUI()
 
 ###Testing functions
-x=Encrypt(23)
-y=Keys
+e=Encrypt(234076)
+k=Keys
 
-mykeys=y.RSA(653,659)
+mykeys=k.RSA(823,827)
 print(mykeys)
 
-mysterytext=x.RSA(mykeys[0])
+mysterytext=e.RSA(mykeys[0])
 print(mysterytext)
 
-z=Decrypt(mysterytext)
-readblmess=z.RSA(mykeys[1])
+d=Decrypt(mysterytext)
+readblmess=d.RSA(mykeys[1])
 print(readblmess)
 
 
