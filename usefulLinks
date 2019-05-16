@@ -6,3 +6,8 @@ https://crypto.stackexchange.com/questions/71/how-can-i-generate-large-prime-num
 
 Maximal int border does not exist in pyhton3
 https://stackoverflow.com/questions/7604966/maximum-and-minimum-values-for-ints
+
+A program to create executables
+https://stackoverflow.com/questions/5458048/how-to-make-a-python-script-standalone-executable-to-run-without-any-dependency
+   pip install pyinstaller
+   pyinstaller cryptograph.py
