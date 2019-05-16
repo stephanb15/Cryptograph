@@ -2,21 +2,48 @@ import math
 import tkinter as tk
 import numpy as np
 
-def GUI():
-    root = tk.Tk()
-    button=tk.Button(root,text='Encrypt/send Message') # insert command=Encryptionfunction
-    button.grid(row=2,column=1)
-    root.title("Cryptograph")
-    iotext=tk.Text(root)
-    iotext.grid(row=1,column=1)
-    menubar=tk.Menu(root)
-    filemenu=tk.Menu(menubar,tearoff=0)
-    menubar.add_cascade(label='Datei',menu=filemenu)
-    menubar.add_cascade(label='Help',menu=filemenu)
-    filemenu.add_command(label='Beenden',command=root.quit)
-    filemenu.add_command(label='Insert File',command=root.quit)
-    root.config(menu=menubar)
-    root.mainloop()
+
+namevar="Mustermann"
+    
+
+class GUI:
+    def __init__(self, x):
+        self.init=x
+        
+    
+    def menubar(self):
+        menubar=tk.Menu(self.init)
+        filemenu=tk.Menu(menubar,tearoff=0)
+        menubar.add_cascade(label='Datei',menu=filemenu)
+        filemenu.add_command(label='Quit',command=self.init.quit)
+        helpmenu=tk.Menu(menubar,tearoff=0)
+        menubar.add_cascade(label='Help',menu=helpmenu)
+        helpmenu.add_command(label='About',command=self.init.quit)
+        helpmenu.add_command(label='Help',command=self.init.quit)
+        configure=tk.Menu(menubar,tearoff=0)
+        menubar.add_cascade(label='Config',menu=configure)
+        configure.add_command(label='Add contact',command=self.init.quit)
+        configure.add_command(label='Chats',command=self.init.quit)
+        configure.add_command(label='change default server',command=self.init.quit)
+        configure.add_command(label='Encryption Algorithm',command=self.init.quit)
+        self.init.config(menu=menubar)
+    
+    def chatbox(self):
+        iotext=tk.Text(self.init)
+        iotext.grid(row=1,column=2)
+        iotext.insert(3.0,namevar+">>" )
+        iotext
+        
+    def button(self):
+        button=tk.Button(self.init,text='Encrypt/send Message') # insert command=Encryptionfunction
+        button.grid(row=2,column=1)
+    
+    def chatlist(self):
+        listbox = tk.Listbox(self.init)
+        listbox.grid(row=1,column=1,sticky="nsew")
+        
+    def end(self):
+        self.init.mainloop()
 
 
 def extndEuclid(a,b):
@@ -142,7 +169,13 @@ class Decrypt:
         #decryption=self.int**privkey[0] % (privkey[1][0]*privkey[1][1])
         return decryption
 
-GUI()
+root = tk.Tk()
+root.title("Cryptograph")
+gui=GUI(root)
+gui.menubar()
+gui.chatbox()
+gui.chatlist()
+gui.end()
 
 ###Testing functions
 e=Encrypt(234076)
