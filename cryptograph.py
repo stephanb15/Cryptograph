@@ -1,6 +1,7 @@
 import math
 import tkinter as tk
 import numpy as np
+import json
 
 
 namevar="Mustermann"
@@ -14,7 +15,7 @@ class GUI:
     def menubar(self):
         menubar=tk.Menu(self.init)
         filemenu=tk.Menu(menubar,tearoff=0)
-        menubar.add_cascade(label='Datei',menu=filemenu)
+        menubar.add_cascade(label='File',menu=filemenu)
         filemenu.add_command(label='Quit',command=self.init.quit)
         helpmenu=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='Help',menu=helpmenu)
@@ -27,7 +28,7 @@ class GUI:
         configure.add_command(label='change default server',command=self.init.quit)
         configure.add_command(label='Encryption Algorithm',command=self.init.quit)
         self.init.config(menu=menubar)
-    
+        
     def chatbox(self):
         iotext=tk.Text(self.init)
         iotext.grid(row=1,column=2)
