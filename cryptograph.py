@@ -4,6 +4,7 @@ import numpy as np
 import json
 import urllib.request
 
+
 namevar="Alice"
     
 
