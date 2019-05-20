@@ -4,14 +4,18 @@ import numpy as np
 import json
 import urllib.request
 
-namevar="Mustermann"
+namevar="Alice"
     
 
 class GUI:
     def __init__(self, x):
         self.init=x
+        listbox = tk.Listbox(self.init)
+        self.lst=listbox
+        iotext=tk.Text(self.init)
+        self.iot=iotext
+        self.iter=0
         
-    
     def menubar(self):
         menubar=tk.Menu(self.init)
         filemenu=tk.Menu(menubar,tearoff=0)
@@ -20,7 +24,7 @@ class GUI:
         helpmenu=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='Help',menu=helpmenu)
         helpmenu.add_command(label='About',command=self.init.quit)
-        helpmenu.add_command(label='Help',command=self.init.quit)
+        helpmenu.add_command(label='Help',command=self.helpmen())
         configure=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='Config',menu=configure)
         configure.add_command(label='Add contact',command=self.init.quit)
@@ -30,22 +34,37 @@ class GUI:
         self.init.config(menu=menubar)
         
     def chatbox(self):
-        iotext=tk.Text(self.init)
-        iotext.grid(row=1,column=2)
-        iotext.insert(3.0,namevar+">>" )
-        iotext
+        self.iot.grid(row=1,column=2)
+        
+    def input_make(self,nameva):
+        self.iot.insert(tk.END,'\n'+namevar+">>")
+        #Create command line
+        
+    def chatlist(self):
+        self.lst.grid(row=1,column=1,sticky="nsew")
+        #get json file contacts and insert contents here: example:
+        self.lst.insert(tk.END,"Bob1")
+        
+    def input_get(self):
+        self.iter=self.iter+1
+        #get input inserted in the editor at command "Enter Key" or Button 
+        self.lst.get(self.iter)
+        self.input_make(namevar)
         
     def button(self):
-        button=tk.Button(self.init,text='Encrypt/send Message') # insert command=Encryptionfunction
-        button.grid(row=2,column=1)
-    
-    def chatlist(self):
-        listbox = tk.Listbox(self.init)
-        listbox.grid(row=1,column=1,sticky="nsew")
+        button=tk.Button(self.init,text='Encrypt/send Message', command= lambda: self.input_get()) # insert command=Encryptionfunction
+        #the remainder code line works with "lamda" without it dosen't however I don't know why
+        button.grid(row=2,column=2)
         
+    def helpmen(self):
+        helpmesg=tk.Tk()
+        helpmesg.title("Cryptograph-Help")
+        guih=GUI(helpmesg)
+        guih.end()
+
     def end(self):
         self.init.mainloop()
-
+       
 class json:
     def __init__(self):
         self.serveradress="https://www.unet.univie.ac.at/~stephanb15/Applications/Cryptograph/"
@@ -65,7 +84,6 @@ class json:
         #maybe try "pip install ssh" but i would not like to do it with that
         ...
 
-
 def extndEuclid(a,b):
     rtupel=[a,b]
     stupel=[1,0]
@@ -84,7 +102,7 @@ def extndEuclid(a,b):
     return (rtupel[0],stupel[0])
 
 def findrepres(rep,mod,bmax,bmin):
-    #finds a representant of an equivalence class in certain borders
+    #finds a representant "rep" of an equivalence class in certain borders
     #mathematically: trys to find a  $$ rep \in (bmin,bmax) $$
     #where the parantheses "(" and ")" indicate $$ bmin,bmax \notin (bmin,bmax) $$
     #thus indicate an open intervall
@@ -103,7 +121,6 @@ def findrepres(rep,mod,bmax,bmin):
     #Thus print a message when rep became >=bmax and later <=bmin
     #so then we know there is no such element $$ rep \in (bmin,bmax) $$
         
-
 def fastexp(base,power):
     #A function to make fast product calculation a^n,
     #where a, n are integers in this implementation
@@ -129,7 +146,6 @@ def fastexp(base,power):
             result*=base**(2**i)
     return result
 
-
 class Keys:
     def RSA(prime1,prime2):
         #find the keys for RSA encryption decryption
@@ -151,7 +167,6 @@ class Keys:
         private=(d,(prime1,prime2))
         return (public,private)
 
-
 class Encrypt:
     def __init__(self,x):
         #input is to be the data you like to encrypt
@@ -169,7 +184,6 @@ class Encrypt:
         #input the RSA public key tupel "pubkey" 
         encryption=(self.int)**pubkey[0] % pubkey[1]
         return encryption
-
 
 class Decrypt:
     def __init__(self,x):
@@ -192,13 +206,15 @@ class Decrypt:
 root = tk.Tk()
 root.title("Cryptograph")
 gui=GUI(root)
+gui.button()
 gui.menubar()
 gui.chatbox()
 gui.chatlist()
+gui.input_get()
 gui.end()
 
 ###Testing Encryption
-e=Encrypt(234076)
+e=Encrypt(2340)
 k=Keys
 
 mykeys=k.RSA(823,827)
@@ -210,7 +226,6 @@ print(mysterytext)
 d=Decrypt(mysterytext)
 readblmess=d.RSA(mykeys[1])
 print(readblmess)
-
 
 #Testing Json
 j=json()
