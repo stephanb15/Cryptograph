@@ -24,14 +24,14 @@ class GUI:
         filemenu.add_command(label='Quit',command=self.init.quit)
         helpmenu=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='Help',menu=helpmenu)
-        helpmenu.add_command(label='About',command=self.init.quit)
-        helpmenu.add_command(label='Help',command=self.helpmen())
+        helpmenu.add_command(label='About',command=lambda: self.men_about())
+        helpmenu.add_command(label='Help',command= lambda: self.men_help())
         configure=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='Config',menu=configure)
-        configure.add_command(label='Add contact',command=self.init.quit)
+        configure.add_command(label='Add contact',command=lambda: self.men_addcontact())
         configure.add_command(label='Chats',command=self.init.quit)
-        configure.add_command(label='change default server',command=self.init.quit)
-        configure.add_command(label='Encryption Algorithm',command=self.init.quit)
+        configure.add_command(label='change default server',command=lambda: self.men_serverconf())
+        configure.add_command(label='Encryption Algorithm',command= lambda: self.men_encryptconf())
         self.init.config(menu=menubar)
         
     def chatbox(self):
@@ -57,10 +57,42 @@ class GUI:
         #the remainder code line works with "lamda" without it dosen't however I don't know why
         button.grid(row=2,column=2)
         
-    def helpmen(self):
+    def men_help(self):
         helpmesg=tk.Tk()
         helpmesg.title("Cryptograph-Help")
         guih=GUI(helpmesg)
+        guih.end()
+        
+    def men_about(self):
+        helpmesg=tk.Tk()
+        helpmesg.title("Cryptograph-About")
+        guih=GUI(helpmesg)
+        guih.end()
+    
+    def men_addcontact(self):
+        helpmesg=tk.Tk()
+        helpmesg.title("Cryptograph-Add contact")
+        guih=GUI(helpmesg)
+        #Write some input box add contact and a button 
+        #if contact exists add the contact- else print: contact doesn't exists
+        #if wrinting it advanced use some search function
+        guih.end()
+    
+    def men_serverconf(self):
+        helpmesg=tk.Tk()
+        helpmesg.title("Cryptograph-Server Configurations")
+        guih=GUI(helpmesg)
+        #Write some input box to add website containing ip adress
+        #in my case https://homepage.univie.ac.at/stephanb15/Applications/Cryptograph/serverip.json
+        #print error messages
+        #if wrinting it advanced use some search function
+        guih.end()
+        
+    def men_encryptconf(self):
+        helpmesg=tk.Tk()
+        helpmesg.title("Cryptograph-Server Configurations")
+        guih=GUI(helpmesg)
+        #choose boxes (these dots) where you can choose the algorithm
         guih.end()
 
     def end(self):
