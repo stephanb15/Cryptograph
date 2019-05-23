@@ -13,9 +13,22 @@ class GUI:
         self.init=x
         listbox = tk.Listbox(self.init)
         self.lst=listbox
-        iotext=tk.Text(self.init)
+        iotext=tk.Text(self.init)#,width=100,height=40)
         self.iot=iotext
         self.iter=0
+        #font for headings:
+        self.headfont=('times',14, 'bold')
+        #self.init.configure(bg="grey")
+        
+    def grid_adjuste(self,x,rows,cols):
+        #input a list of rows and cols
+        #e.g. [[1,2],[1,10]], where 1 is the row 2 and 10 are the weights
+        #adjust grid when resized
+        #https://infohost.nmt.edu/tcc/help/pubs/tkinter/web/grid-config.html
+        for i in range(len(rows)):
+            x.grid_rowconfigure(rows[i][0], weight=rows[i][1])
+        for i in range(len(cols)):
+            x.grid_columnconfigure(cols[i][0], weight=cols[i][1])
         
     def menubar(self):
         menubar=tk.Menu(self.init)
@@ -35,7 +48,7 @@ class GUI:
         self.init.config(menu=menubar)
         
     def chatbox(self):
-        self.iot.grid(row=1,column=2)
+        self.iot.grid(row=1,column=2,sticky="nsew")
         
     def input_make(self,nameva):
         self.iot.insert(tk.END,'\n'+namevar+">>")
@@ -58,30 +71,77 @@ class GUI:
         button.grid(row=2,column=2)
         
     def men_help(self):
-        helpmesg=tk.Tk()
-        helpmesg.title("Cryptograph-Help")
-        guih=GUI(helpmesg)
+        men=tk.Tk()
+        men.title("Cryptograph-Help")
+        men.resizable(width=False, height=False)
+        guih=GUI(men)
+        text1='Cryptograph-Helppage:'
+        text2='The help documentation can be found at:'
+        text3='https://homepage.univie.ac.at/stephanb15/Applications/Cryptograph/documentation.html'
+        self.grid_adjuste(self.init,[[1,1]],[[1,1]])
+        msg1 = tk.Message(men,width=1000, text=text1)
+        msg2 = tk.Message(men,width=1000, text=text2)
+        msg3 = tk.Message(men,width=1000, text=text3)
+        msg1.config(font=self.headfont)
+        msg1.grid(row=1,column=1,sticky="nsew")
+        msg2.grid(row=2,column=1,sticky="nsew")
+        msg3.grid(row=3,column=1,sticky="nsew")
         guih.end()
         
     def men_about(self):
-        helpmesg=tk.Tk()
-        helpmesg.title("Cryptograph-About")
-        guih=GUI(helpmesg)
+        men=tk.Tk()
+        #men.geometry("500x500")
+        men.title("Cryptograph-About")
+        men.resizable(width=False, height=False)
+        guih=GUI(men)
+        self.grid_adjuste(self.init,[[1,1]],[[1,1]])
+        l1txt1='This is a communication software with built in cryptographic algorithms.'
+        l1txt2='It was created in 2019 by a team of students at the university of Vienna'
+        l1txt3='(faculty of matheamtics) as part of a programming practical.'
+        l2txt1='Jakob Lanser   a11806538@unet.univie.ac.at'
+        l2txt2='Saifullah   Totakhel a11713253@unet.univie.ac.at'
+        l2txt3='Stephan Bornberg   a01506156@unet.univie.ac.at'
+        l1 = tk.Message(men ,width=1000, text='''Cryptograph 1.0:''')
+        l2 = tk.Message(men, width=1000, text=l1txt1+'\n'+l1txt2+'\n'+l1txt3)
+        l3 = tk.Message(men, width=1000, text='Authors names:')
+        l4 = tk.Message(men, width=1000, text=l2txt1+'\n'+l2txt2+'\n'+l2txt3)
+        l1.config(font=self.headfont)
+        l3.config(font=('times',12, 'bold'))
+        l1.grid(row=1,column=1,sticky="nsew")
+        l2.grid(row=2,column=1,sticky="nsew")
+        l3.grid(row=3,column=1,sticky="nsew")
+        l4.grid(row=4,column=1,sticky="nsew")
         guih.end()
-    
+        
     def men_addcontact(self):
-        helpmesg=tk.Tk()
-        helpmesg.title("Cryptograph-Add contact")
-        guih=GUI(helpmesg)
+        men=tk.Tk()
+        men.title("Cryptograph-Add contact")
+        men.resizable(width=False, height=False)
+        guih=GUI(men)
+        l1txt1 ='Add Contacts'
+        l2txt1='Input an exististing username.'
+        l2txt2='(If the username does not exists de Feedback dialog will print an error)'
+        l3txt1='Feedback:'
+        l1 = tk.Message(men, width=1000, text=l1txt1)
+        l2 = tk.Message(men, width=1000, text=l2txt1+'\n'+l2txt2)
+        l3 = tk.Message(men, width=1000, text=l3txt1)
+        usrname=tk.Entry(men)
+        button=tk.Button(men,text='Find user')#, command= lambda: self.input_get())
+        l1.config(font=self.headfont)
+        l1.grid(row=1,column=1,sticky="nsew")
+        l2.grid(row=2,column=1,sticky="nsew")
+        usrname.grid(row=3,column=1,sticky="nsew")
+        button.grid(row=4,column=1,sticky="nsew")
+        l3.grid(row=5,column=1,sticky="nsew")
         #Write some input box add contact and a button 
         #if contact exists add the contact- else print: contact doesn't exists
         #if wrinting it advanced use some search function
         guih.end()
     
     def men_serverconf(self):
-        helpmesg=tk.Tk()
-        helpmesg.title("Cryptograph-Server Configurations")
-        guih=GUI(helpmesg)
+        men=tk.Tk()
+        men.title("Cryptograph-Server Configurations")
+        guih=GUI(men)
         #Write some input box to add website containing ip adress
         #in my case https://homepage.univie.ac.at/stephanb15/Applications/Cryptograph/serverip.json
         #print error messages
@@ -89,9 +149,9 @@ class GUI:
         guih.end()
         
     def men_encryptconf(self):
-        helpmesg=tk.Tk()
-        helpmesg.title("Cryptograph-Server Configurations")
-        guih=GUI(helpmesg)
+        men=tk.Tk()
+        men.title("Cryptograph-Server Configurations")
+        guih=GUI(men)
         #choose boxes (these dots) where you can choose the algorithm
         guih.end()
 
@@ -239,6 +299,7 @@ class Decrypt:
 root = tk.Tk()
 root.title("Cryptograph")
 gui=GUI(root)
+gui.grid_adjuste(root,[[1,1]],[[1,1],[2,10]])
 gui.button()
 gui.menubar()
 gui.chatbox()
