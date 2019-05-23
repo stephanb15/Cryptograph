@@ -12,8 +12,19 @@ import sys
 import json
 import time
 
-##This applications task is nothing more than geting my local ip adress and
+#(i)This applications task is nothing more than geting my local ip adress and
 #sending it to the uni wien webserver
+
+#(ii)
+#I added the following line
+# @/usr/bin/python3 /home/pi/sendip.py
+#to the file acessed by
+#sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
+# so in order to make it startup at boot
+#see also:
+#https://www.raspberrypi-spy.co.uk/2014/05/how-to-autostart-apps-in-rasbian-lxde-desktop/
+
+
 
 def getip():
     #mostly coppied from
