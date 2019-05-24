@@ -3,6 +3,7 @@ import tkinter as tk
 import numpy as np
 import json
 import urllib.request
+import requests
 
 
 namevar="Alice"
@@ -158,24 +159,34 @@ class GUI:
     def end(self):
         self.init.mainloop()
        
-class json:
+class ioserver:
     def __init__(self):
-        self.serveradress="https://www.unet.univie.ac.at/~stephanb15/Applications/Cryptograph/"
+        self.serveradressUni="https://www.unet.univie.ac.at/~stephanb15/Applications/Cryptograph/"
+        self.serveradressHome="http://188.22.60.96:8000/"
         self.username="stephanb15"
-
+        
     def pull(self,UserID):
         #get the pulblic Key, messages from user :UserID
         #https://docs.python.org/3/howto/urllib2.html
         #https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
-        with urllib.request.urlopen(self.serveradress+UserID +".json") as response:
+        pathHome=self.serveradressHome+UserID +".json"
+        with urllib.request.urlopen(pathHome) as response:
             data=response.read().decode()
-            #print(self.serveradress+UserID+".json")
-            #print(data)
-            
-    def push(self):
+            outptdict=json.loads(data)
+        return outptdict
+    
+    def push(self,UserID,data):
+        #create a json string from python dictionary
+        data=json.dumps(data)
+        #create byte data
+        data=bytes(data,encoding='utf8')
+        print(data)
+        pathHome=self.serveradressHome+UserID +".json"
+        pushed = urllib.request.Request(url=pathHome, data=data,method='PUT')
+        urllib.request.urlopen(pushed)
         #Push the pulblic Key, and messages to self.username
         #maybe try "pip install ssh" but i would not like to do it with that
-        ...
+        #requests.put(pathHome,data)
 
 def extndEuclid(a,b):
     rtupel=[a,b]
@@ -322,5 +333,9 @@ readblmess=d.RSA(mykeys[1])
 print(readblmess)
 
 #Testing Json
-j=json()
-j.pull("plain")
+j=ioserver()
+output=j.pull("plain")
+print(output)
+output["message"]["Bob1"]="hAllO wORld"
+print(output)
+j.push("plain",output)
