@@ -182,7 +182,7 @@ class ioserver:
         data=bytes(data,encoding='utf8')
         print(data)
         pathHome=self.serveradressHome+UserID +".json"
-        pushed = urllib.request.Request(url=pathHome, data=data,method='PUT')
+        pushed = urllib.request.Request(url=pathHome, data=data,method='POST')
         urllib.request.urlopen(pushed)
         
         #Push the pulblic Key, and messages to self.username
