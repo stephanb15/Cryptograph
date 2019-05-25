@@ -24,7 +24,7 @@ import http.server
 import socketserver
 import os
 
-PORT = 8001
+PORT = 8000
 
 #https://stackoverflow.com/questions/39801718/how-to-run-a-http-server-which-serve-a-specific-path
 #the following changes the defalut directory copied from the reference aboth
@@ -40,7 +40,9 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         #https://stackoverflow.com/questions/33662842/simple-python-server-to-process-get-and-post-requests-with-json
         #https://stackoverflow.com/questions/17690585/how-do-i-access-the-data-sent-to-my-server-using-basehttprequesthandler
         length = int(self.headers['Content-Length'])
-        print(self.rfile.read(length))
+        bindata=self.rfile.read(length)
+        data=str(bindata,encoding='utf8')
+        print(data)
         
 Handler =  MyHTTPRequestHandler
 

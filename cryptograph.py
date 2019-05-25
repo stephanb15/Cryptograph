@@ -163,6 +163,8 @@ class ioserver:
     def __init__(self):
         self.serveradressUni="https://www.unet.univie.ac.at/~stephanb15/Applications/Cryptograph/"
         self.serveradressHome="http://188.22.60.96:8000/"
+        #for testing- use the localhost
+        #self.serveradressHome="http://localhost:8000/"
         self.username="stephanb15"
         
     def pull(self,UserID):
@@ -180,11 +182,17 @@ class ioserver:
         data=json.dumps(data)
         #create byte data
         data=bytes(data,encoding='utf8')
-        print(data)
+        #print(data)
         pathHome=self.serveradressHome+UserID +".json"
         pushed = urllib.request.Request(url=pathHome, data=data,method='POST')
-        urllib.request.urlopen(pushed)
-        
+        try:
+            urllib.request.urlopen(pushed)
+        except:
+            #by that I prevent the error message
+            #"raise RemoteDisconnected("Remote end closed connection withou"
+            #aldough writing to the server now works without a client error 
+            #this is a dirty solution
+            print("Server Communication Error")
         #Push the pulblic Key, and messages to self.username
         #maybe try "pip install ssh" but i would not like to do it with that
         #requests.put(pathHome,data)
@@ -335,8 +343,9 @@ print(readblmess)
 
 #Testing Json
 j=ioserver()
-output=j.pull("plain")
-print(output)
-output["message"]["Bob1"]="hAllO wORld"
+#output=j.pull("plain")
+#print(output)
+#output["message"]["Bob1"]="hAllO wORld"
+output="efe"
 print(output)
 j.push("plain",output)
