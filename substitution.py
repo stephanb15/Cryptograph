@@ -4,13 +4,13 @@ class Substitution:
     
     def __init__(self):
         
-        self.alphabet = [".",",","!","?"]
+        self.alphabet = [".",",","!","?"," "]
         for x in range(65,91):
             self.alphabet.append(chr(x))
         for x in range(97,123):
             self.alphabet.append(chr(x))
         
-        self.subAlphabet = [".",",","!","?"]
+        self.subAlphabet = [".",",","!","?"," "]
         for x in range(65,91):
             self.subAlphabet.append(chr(x))
         for x in range(97,123):
@@ -45,6 +45,6 @@ a = Substitution()
 
 print(a.getAlphabet())
 print(a.getSubAlphabet())
-b = a.encryptMessage("Hallo Welt")
+b = a.encryptMessage("Hallo Welt!")
 print(b)
 print(a.decryptMessage(b))
