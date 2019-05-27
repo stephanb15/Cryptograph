@@ -38,11 +38,12 @@ def send(myip):
     #https://data-flair.training/blogs/python-subprocess-module/
     #https://gist.github.com/bortzmeyer/1284249
     #write an if condition - if directory media/pers/html  does not exists, do:
-    #cmd="stephanb15@login.univie.ac.at:./ /media/pers -o allow_other"
+    cmd="stephanb15@login.univie.ac.at:./ /media/pers"
+    passwd="******"
     
-    #subprocess.run(["sshfs", cmd])
+    subprocess.call(["sshfs " + cmd+" && echo "+passwd],shell=True)
     
-    #subprocess.run(["cd", "media/pers/html/Appliactions/Cryptograph"])
+    subprocess.call(["cd "+"/media/pers/fileserver/html/Applications/Cryptograph"],shell=True)
     
     data = {
             "ip": myip
@@ -61,6 +62,7 @@ while True:
     time.sleep(5)
     newip=getip()
     if myip != newip:
+        print(myip,"new", newip)
         myip=newip
         send(myip)
         

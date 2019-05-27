@@ -160,18 +160,18 @@ class GUI:
         self.init.mainloop()
        
 class ioserver:
-    def __init__(self):
-        self.serveradressUni="https://www.unet.univie.ac.at/~stephanb15/Applications/Cryptograph/"
-        self.serveradressHome="http://188.22.60.96:8000/"
+    def __init__(self,serveradressHome,PortHome):
+        self.serveradressHome=serveradressHome
+        self.PortHome=PortHome
         #for testing- use the localhost
         #self.serveradressHome="http://localhost:8000/"
-        self.username="stephanb15"
-        
+        self.username="stephanb15"    
+    
     def pull(self,UserID):
         #get the pulblic Key, messages from user :UserID
         #https://docs.python.org/3/howto/urllib2.html
         #https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
-        pathHome=self.serveradressHome+UserID +".json"
+        pathHome=self.serveradressHome+":"+self.PortHome+"/"+UserID +".json"
         with urllib.request.urlopen(pathHome) as response:
             data=response.read().decode()
             outptdict=json.loads(data)
@@ -196,6 +196,20 @@ class ioserver:
         #Push the pulblic Key, and messages to self.username
         #maybe try "pip install ssh" but i would not like to do it with that
         #requests.put(pathHome,data)
+
+class virtstaticip:
+    #this class handles pull task(s) for maintaining a virtual static ip
+    #the ip of my home server is not static,
+    #by the application sendip.py the ip adress is send to the uni-server 
+    def __init__(self):
+        self.serveradressUni="https://www.unet.univie.ac.at/~stephanb15/Applications/Cryptograph/"
+    def pull(self):
+        pathHome=self.serveradressUni+".json"
+        with urllib.request.urlopen(pathHome) as response:
+            data=response.read().decode()
+            outptdict=json.loads(data)
+        return outptdict
+        
 
 def extndEuclid(a,b):
     rtupel=[a,b]
@@ -328,7 +342,7 @@ gui.input_get()
 gui.end()
 
 ###Testing Encryption
-e=Encrypt(2340)
+e=Encrypt(232342)
 k=Keys
 
 mykeys=k.RSA(823,827)
@@ -342,7 +356,7 @@ readblmess=d.RSA(mykeys[1])
 print(readblmess)
 
 #Testing Json
-j=ioserver()
+j=ioserver("http://194.166.125.42","8000")
 #output=j.pull("plain")
 #print(output)
 #output["message"]["Bob1"]="hAllO wORld"

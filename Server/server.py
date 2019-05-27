@@ -43,7 +43,6 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         bindata=self.rfile.read(length)
         data=str(bindata,encoding='utf8')
         print(data)
-        
 Handler =  MyHTTPRequestHandler
 
 #the following code is copied from refernce
