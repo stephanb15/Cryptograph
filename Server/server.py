@@ -23,6 +23,8 @@ Created on Thu May 23 19:28:05 2019
 import http.server
 import socketserver
 import os
+import json
+import datetime
 
 PORT = 8000
 
@@ -33,7 +35,6 @@ os.chdir(web_dir)
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
-        ...
         #Find a function which buffers the incomming data
         #Add a json function to add a new message to the requestet file
         #Maybe have a look here
@@ -42,7 +43,27 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         length = int(self.headers['Content-Length'])
         bindata=self.rfile.read(length)
         data=str(bindata,encoding='utf8')
-        print(data)
+        pydict=json.loads(data)
+        publickeys=pydict["publickeys"]
+        message=pydict["message"]
+        sender=pydict["senderID"]
+        receiver=pydict["receiverID"]
+        
+        #get data from sender
+        file=open(sender +'.json', 'r')
+        extndData=json.load(file)
+        nowtimedate=str(datetime.datetime.now())
+        #update the server dicitionary
+        extndData["message"][receiver].update({nowtimedate: {"publickey": publickeys , "message": message }})
+        #write the server dicitonary
+        filepath= sender+".json"
+        outfile=open(filepath, 'w')
+        json.dump(extndData,outfile)
+        
+        
+        
+        
+        
 Handler =  MyHTTPRequestHandler
 
 #the following code is copied from refernce

@@ -7,7 +7,11 @@ import requests
 
 
 namevar="Alice"
-    
+
+
+##############################################################################
+#                             GUI
+##############################################################################
 
 class GUI:
     def __init__(self, x):
@@ -20,6 +24,8 @@ class GUI:
         #font for headings:
         self.headfont=('times',14, 'bold')
         #self.init.configure(bg="grey")
+        #initial curser position (assumed)
+        self.curserpos=tk.CURRENT
         
     def grid_adjuste(self,x,rows,cols):
         #input a list of rows and cols
@@ -61,10 +67,12 @@ class GUI:
         self.lst.insert(tk.END,"Bob1")
         
     def input_get(self):
-        self.iter=self.iter+1
-        #get input inserted in the editor at command "Enter Key" or Button 
-        self.lst.get(self.iter)
+        #self.iter=self.iter+1
+        #get input inserted in the editor at command "Enter Key" or Button
+        message=self.iot.get(1.0,tk.CURRENT)
         self.input_make(namevar)
+        self.curserpos=tk.CURRENT
+        return message
         
     def button(self):
         button=tk.Button(self.init,text='Encrypt/send Message', command= lambda: self.input_get()) # insert command=Encryptionfunction
@@ -158,6 +166,10 @@ class GUI:
 
     def end(self):
         self.init.mainloop()
+
+##############################################################################
+#                             Server
+##############################################################################
        
 class ioserver:
     def __init__(self,serveradressHome,PortHome):
@@ -178,12 +190,14 @@ class ioserver:
         return outptdict
     
     def push(self,UserID,data):
+        #data must be an dictionary of 
+        #the userID dedicated to you
         #create a json string from python dictionary
         data=json.dumps(data)
         #create byte data
         data=bytes(data,encoding='utf8')
         #print(data)
-        pathHome=self.serveradressHome+UserID +".json"
+        pathHome=self.serveradressHome+":"+self.PortHome+"/"+UserID +".json"
         pushed = urllib.request.Request(url=pathHome, data=data,method='POST')
         try:
             urllib.request.urlopen(pushed)
@@ -209,7 +223,11 @@ class virtstaticip:
             data=response.read().decode()
             outptdict=json.loads(data)
         return outptdict
-        
+
+
+##############################################################################
+#                             Matheamtics
+##############################################################################
 
 def extndEuclid(a,b):
     rtupel=[a,b]
@@ -273,6 +291,11 @@ def fastexp(base,power):
             result*=base**(2**i)
     return result
 
+##############################################################################
+#                             Cryptography
+##############################################################################
+
+
 class Keys:
     def RSA(prime1,prime2):
         #find the keys for RSA encryption decryption
@@ -330,6 +353,12 @@ class Decrypt:
         #decryption=self.int**privkey[0] % (privkey[1][0]*privkey[1][1])
         return decryption
 
+
+
+##############################################################################
+#                             Main
+##############################################################################
+
 root = tk.Tk()
 root.title("Cryptograph")
 gui=GUI(root)
@@ -338,8 +367,22 @@ gui.button()
 gui.menubar()
 gui.chatbox()
 gui.chatlist()
-gui.input_get()
+message=gui.input_get()
+print(message)
+j=ioserver("http://188.23.146.121","8000")
+method="aeion"
+key="aefaef"
+sender="plain"
+receiver="stephanb15"
+data={'senderID': sender, 'receiverID': receiver ,'publickeys': key, 'message': message}
+j.push("plain",data)
+
+
 gui.end()
+
+##############################################################################
+#                             Testing
+##############################################################################
 
 ###Testing Encryption
 e=Encrypt(232342)
@@ -356,10 +399,9 @@ readblmess=d.RSA(mykeys[1])
 print(readblmess)
 
 #Testing Json
-j=ioserver("http://194.166.125.42","8000")
-#output=j.pull("plain")
-#print(output)
-#output["message"]["Bob1"]="hAllO wORld"
-output="efe"
+
+
+output=j.pull("plain")
 print(output)
-j.push("plain",output)
+#output["message"]["Bob1"]="hAllO wORld"
+

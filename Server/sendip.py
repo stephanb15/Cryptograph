@@ -38,9 +38,11 @@ def send(myip):
     #https://data-flair.training/blogs/python-subprocess-module/
     #https://gist.github.com/bortzmeyer/1284249
     #write an if condition - if directory media/pers/html  does not exists, do:
-    cmd="stephanb15@login.univie.ac.at:./ /media/pers"
+    cmd="stephanb15@login.univie.ac.at:./ /media/pers -o allow_other"
     passwd="******"
     
+    #change writing permission so in order to be able to mount
+    #sudo chmod 777 /media/pers
     subprocess.call(["sshfs " + cmd+" && echo "+passwd],shell=True)
     
     subprocess.call(["cd "+"/media/pers/fileserver/html/Applications/Cryptograph"],shell=True)
@@ -53,18 +55,22 @@ def send(myip):
     with open(destination, "w") as f:
         json.dump(data,f)
     
+    subprocess.call(["fusermount -u /media/pers"],shell=True)
+    
 print(getip())
 
 myip="123456789"
 #a random initial value
 
+logfile=open("log_sendip.txt", "a")
+
 while True:
     time.sleep(5)
     newip=getip()
+    print(myip,"new", newip, file=logfile)
     if myip != newip:
-        print(myip,"new", newip)
         myip=newip
         send(myip)
-        
-        
+
+
     

@@ -1,12 +1,13 @@
 {
-   "UserID" :"Alice",
-   "publicKey" : {
-                  "Evalue" : 1234567890  ,
-                  "Nvalue" : 1234567890
-                 },
+   "UserID" :"plain",
     "message" : 
                 {
-                "Bob1": ["",""],
-                "Bob2": ["",""]
-                }
+                
+                "stephanb15": {
+                            "28.05.2019":{
+                                         "publickey": "efsef",
+                                         "message": "Hello World"
+                                         }
+                               }                                    
+}
 }
