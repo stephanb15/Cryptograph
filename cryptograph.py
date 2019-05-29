@@ -26,6 +26,56 @@ class GUI:
         #self.init.configure(bg="grey")
         #initial curser position (assumed)
         self.curserpos=tk.CURRENT
+        self.message=tk.Text(self.init, height=2)
+        
+        #get all contents (messages, contacts from server as initialised)
+        #maybe for performance create a synchronisation algorithms to
+        #save from big downloads, later
+        self.server_content=j.pull("plain") ######## CHANGE PLAIN TO GENERAL USERID
+        
+        #print chat history
+        
+        #list of contacts of user
+        self.contacts=list(self.server_content["message"].keys())
+        
+        self.oldset=set(self.server_content["message"]["stephanb15"].keys()) ######## CHANGE stephanb15 TO GENERAL USERID
+        
+    def server_update(self):
+        #essential, as otherwise messanges no messages would income
+        self.server_content=j.pull("plain") ######## CHANGE PLAIN TO GENERAL USERID
+        #print(self.server_content)
+        print("server_update")
+        
+        #create a loop with after-mehtod running alongiside with the other mysterious
+        #tkinter loop(s) nowbody knows about
+        self.chat_update()
+        self.init.after(4000, lambda: self.server_update())
+        #lambda is magic- without tkinter does shit
+        
+    def chat_update(self):
+        #write a function creating a list contaning all messenge keys "
+        # i.e "2019-05-29 18:30:59.099567" 
+        #after every server_update compare those lists
+        #and if the list is alterd print the contents 
+        #of the matheamtical complement (set difference) of the old set to the new list
+        self.newset=set(self.server_content["message"]["stephanb15"].keys())  ######## CHANGE stephanb15 TO GENERAL USERID
+        #print(self.newset)
+        difference=self.newset-self.oldset
+        self.oldset=self.newset
+        
+        #order the differnce-set by date and print out the dedicated messages
+        #, so the dictionary[key] where key is element of set, "difference"
+        difference=sorted(list(difference))
+        # sorting is necessary, so the date-time of the message is sorted
+        #sorting creates a list with first old messages - then new messages
+        print(difference)
+        
+        #print these messages in the gui
+        for i in range(len(difference)):
+            message=self.server_content["message"]["stephanb15"][difference[i]]["message"]
+            print(message)
+            self.input_make("stephanb15",message,False)
+        
         
     def grid_adjuste(self,x,rows,cols):
         #input a list of rows and cols
@@ -56,28 +106,43 @@ class GUI:
         
     def chatbox(self):
         self.iot.grid(row=1,column=2,sticky="nsew")
-        
-    def input_make(self,nameva):
-        self.iot.insert(tk.END,'\n'+namevar+">>")
+    
+    def chatinput(self):
+        self.message.grid(row=2,column=2,sticky="nsew")
+    
+    def input_make(self,nameva,message,send):
+        self.iot.insert(tk.END,'\n'+nameva+">> "+message)
+        if send==True:
+            self.input_send(message)
         #Create command line
-        
+    
+    def input_send(self,message):
+        print(message)
+        j=ioserver("http://188.23.146.121","8000")
+        method="aeion"
+        key="aefaef"
+        sender="plain"
+        receiver="stephanb15"
+        data={'senderID': sender, 'receiverID': receiver ,'publickeys': key, 'message': message}
+        j.push("plain",data)
+
     def chatlist(self):
         self.lst.grid(row=1,column=1,sticky="nsew")
         #get json file contacts and insert contents here: example:
-        self.lst.insert(tk.END,"Bob1")
+        for x in range(len(self.contacts)):
+            self.lst.insert(tk.END,self.contacts[x])
         
     def input_get(self):
         #self.iter=self.iter+1
         #get input inserted in the editor at command "Enter Key" or Button
-        message=self.iot.get(1.0,tk.CURRENT)
-        self.input_make(namevar)
-        self.curserpos=tk.CURRENT
+        message=self.message.get(1.0, tk.END)
+        self.message.delete(1.0,tk.END)
         return message
         
     def button(self):
-        button=tk.Button(self.init,text='Encrypt/send Message', command= lambda: self.input_get()) # insert command=Encryptionfunction
+        button=tk.Button(self.init,text='Encrypt/send Message', command= lambda: self.input_make(namevar,self.input_get(),True)) # insert command=Encryptionfunction
         #the remainder code line works with "lamda" without it dosen't however I don't know why
-        button.grid(row=2,column=2)
+        button.grid(row=3,column=2)
         
     def men_help(self):
         men=tk.Tk()
@@ -359,6 +424,7 @@ class Decrypt:
 #                             Main
 ##############################################################################
 
+j=ioserver("http://188.23.146.121","8000")
 root = tk.Tk()
 root.title("Cryptograph")
 gui=GUI(root)
@@ -367,17 +433,8 @@ gui.button()
 gui.menubar()
 gui.chatbox()
 gui.chatlist()
-message=gui.input_get()
-print(message)
-j=ioserver("http://188.23.146.121","8000")
-method="aeion"
-key="aefaef"
-sender="plain"
-receiver="stephanb15"
-data={'senderID': sender, 'receiverID': receiver ,'publickeys': key, 'message': message}
-j.push("plain",data)
-
-
+gui.chatinput()
+gui.server_update()
 gui.end()
 
 ##############################################################################
@@ -401,7 +458,8 @@ print(readblmess)
 #Testing Json
 
 
-output=j.pull("plain")
-print(output)
+#output=j.pull("plain")
+#print(output)
+
 #output["message"]["Bob1"]="hAllO wORld"
 
