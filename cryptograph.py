@@ -6,7 +6,7 @@ import urllib.request
 import requests
 
 
-namevar="Alice"
+namevar="plain"
 
 
 ##############################################################################
@@ -31,34 +31,37 @@ class GUI:
         #get all contents (messages, contacts from server as initialised)
         #maybe for performance create a synchronisation algorithms to
         #save from big downloads, later
-        self.server_content=j.pull("plain") ######## CHANGE PLAIN TO GENERAL USERID
         
-        #print chat history
+        #initialise chat - get from server
+        self.chat_update_init("stephanb15","plain")
         
         #list of contacts of user
         self.contacts=list(self.server_content["message"].keys())
         
-        self.oldset=set(self.server_content["message"]["stephanb15"].keys()) ######## CHANGE stephanb15 TO GENERAL USERID
+    def chat_update_init(self, UserID_alice,UserID_bob):
         
-    def server_update(self):
-        #essential, as otherwise messanges no messages would income
-        self.server_content=j.pull("plain") ######## CHANGE PLAIN TO GENERAL USERID
-        #print(self.server_content)
-        print("server_update")
+        #get all server contents from Bob
+        self.server_content=j.pull(UserID_bob)
         
-        #create a loop with after-mehtod running alongiside with the other mysterious
-        #tkinter loop(s) nowbody knows about
-        self.chat_update()
-        self.init.after(4000, lambda: self.server_update())
-        #lambda is magic- without tkinter does shit
+        #sieve messages dedicated to Alice 
+        self.oldset=set(self.server_content["message"][UserID_alice].keys())
         
-    def chat_update(self):
+        #print chat history
+        ##
+        #
+        ##
+        
+    def chat_update(self,UserID_alice, UserID_bob):
         #write a function creating a list contaning all messenge keys "
         # i.e "2019-05-29 18:30:59.099567" 
         #after every server_update compare those lists
-        #and if the list is alterd print the contents 
+        #and if the list is alterd, print the contents to the gui 
         #of the matheamtical complement (set difference) of the old set to the new list
-        self.newset=set(self.server_content["message"]["stephanb15"].keys())  ######## CHANGE stephanb15 TO GENERAL USERID
+        
+        #essential, as otherwise messanges no messages would income
+        self.server_content=j.pull(UserID_bob) ######## CHANGE PLAIN TO GENERAL USERID
+        
+        self.newset=set(self.server_content["message"][UserID_alice].keys())
         #print(self.newset)
         difference=self.newset-self.oldset
         self.oldset=self.newset
@@ -72,10 +75,51 @@ class GUI:
         
         #print these messages in the gui
         for i in range(len(difference)):
-            message=self.server_content["message"]["stephanb15"][difference[i]]["message"]
+            message=self.server_content["message"][UserID_alice][difference[i]]["message"]
             print(message)
-            self.input_make("stephanb15",message,False)
+            self.input_make_bob(message,UserID_bob)
         
+        #Write a function to print the messages in specific window- not all of them in the same
+        
+        #create a loop with after-mehtod running alongiside with the other mysterious
+        #tkinter loop(s) nowbody knows about
+        
+        #change this (milliseconds) if update is to slow- however performance might increase
+        chat_update_period=2000
+        
+        self.init.after(chat_update_period, lambda: self.chat_update(UserID_alice,UserID_bob))
+        
+        
+        #lambda is magic- without tkinter does shit
+
+    def input_make_alice(self,message,UserID_alice,UserID_bob):
+        #prints the message "message" from User "namevar" to the gui
+        #if send==True the message is printed to the server
+        
+        self.iot.insert(tk.END,'\n'+UserID_alice+">> "+message)
+        self.input_send(message,UserID_alice,UserID_bob)
+        #Create command line
+    
+    def input_make_bob(self,message,UserID_bob):
+        #prints the message "message" from User "namevar" to the gui
+        #if send==True the message is printed to the server
+        
+        self.iot.insert(tk.END,'\n'+UserID_bob+">> "+message)
+        
+    def input_send(self,message,UserID_alice,UserID_bob):
+        print(message)
+        j=ioserver("http://188.23.146.121","8000")
+        method="aeion"
+        key="aefaef"
+        data={'senderID': UserID_alice, 'receiverID': UserID_bob ,'publickeys': key, 'message': message}
+        j.push(UserID_alice,data)
+
+    def input_get(self):
+        #self.iter=self.iter+1
+        #get input inserted in the editor at command "Enter Key" or Button
+        message=self.message.get(1.0, tk.END)
+        self.message.delete(1.0,tk.END)
+        return message
         
     def grid_adjuste(self,x,rows,cols):
         #input a list of rows and cols
@@ -87,6 +131,27 @@ class GUI:
         for i in range(len(cols)):
             x.grid_columnconfigure(cols[i][0], weight=cols[i][1])
         
+    def chatbox(self):
+        self.iot.grid(row=1,column=2,sticky="nsew")
+    
+    def chatinput(self):
+        self.message.grid(row=2,column=2,sticky="nsew")
+        
+    def chatlist(self):
+        self.lst.grid(row=1,column=1,sticky="nsew")
+        #get json file contacts and insert contents here: example:
+        for x in range(len(self.contacts)):
+            self.lst.insert(tk.END,self.contacts[x])
+        
+    def button(self):
+        
+        UserID_alice=namevar
+        UserID_bob="stephanb15"
+        
+        button=tk.Button(self.init,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),UserID_alice,UserID_bob)) # insert command=Encryptionfunction
+        #the remainder code line works with "lamda" without it dosen't however I don't know why
+        button.grid(row=3,column=2)
+
     def menubar(self):
         menubar=tk.Menu(self.init)
         filemenu=tk.Menu(menubar,tearoff=0)
@@ -104,45 +169,6 @@ class GUI:
         configure.add_command(label='Encryption Algorithm',command= lambda: self.men_encryptconf())
         self.init.config(menu=menubar)
         
-    def chatbox(self):
-        self.iot.grid(row=1,column=2,sticky="nsew")
-    
-    def chatinput(self):
-        self.message.grid(row=2,column=2,sticky="nsew")
-    
-    def input_make(self,nameva,message,send):
-        self.iot.insert(tk.END,'\n'+nameva+">> "+message)
-        if send==True:
-            self.input_send(message)
-        #Create command line
-    
-    def input_send(self,message):
-        print(message)
-        j=ioserver("http://188.23.146.121","8000")
-        method="aeion"
-        key="aefaef"
-        sender="plain"
-        receiver="stephanb15"
-        data={'senderID': sender, 'receiverID': receiver ,'publickeys': key, 'message': message}
-        j.push("plain",data)
-
-    def chatlist(self):
-        self.lst.grid(row=1,column=1,sticky="nsew")
-        #get json file contacts and insert contents here: example:
-        for x in range(len(self.contacts)):
-            self.lst.insert(tk.END,self.contacts[x])
-        
-    def input_get(self):
-        #self.iter=self.iter+1
-        #get input inserted in the editor at command "Enter Key" or Button
-        message=self.message.get(1.0, tk.END)
-        self.message.delete(1.0,tk.END)
-        return message
-        
-    def button(self):
-        button=tk.Button(self.init,text='Encrypt/send Message', command= lambda: self.input_make(namevar,self.input_get(),True)) # insert command=Encryptionfunction
-        #the remainder code line works with "lamda" without it dosen't however I don't know why
-        button.grid(row=3,column=2)
         
     def men_help(self):
         men=tk.Tk()
@@ -244,17 +270,17 @@ class ioserver:
         #self.serveradressHome="http://localhost:8000/"
         self.username="stephanb15"    
     
-    def pull(self,UserID):
+    def pull(self,UserID_sender):
         #get the pulblic Key, messages from user :UserID
         #https://docs.python.org/3/howto/urllib2.html
         #https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
-        pathHome=self.serveradressHome+":"+self.PortHome+"/"+UserID +".json"
+        pathHome=self.serveradressHome+":"+self.PortHome+"/"+UserID_sender +".json"
         with urllib.request.urlopen(pathHome) as response:
             data=response.read().decode()
             outptdict=json.loads(data)
         return outptdict
     
-    def push(self,UserID,data):
+    def push(self,UserID_sender,data):
         #data must be an dictionary of 
         #the userID dedicated to you
         #create a json string from python dictionary
@@ -262,7 +288,7 @@ class ioserver:
         #create byte data
         data=bytes(data,encoding='utf8')
         #print(data)
-        pathHome=self.serveradressHome+":"+self.PortHome+"/"+UserID +".json"
+        pathHome=self.serveradressHome+":"+self.PortHome+"/"+UserID_sender +".json"
         pushed = urllib.request.Request(url=pathHome, data=data,method='POST')
         try:
             urllib.request.urlopen(pushed)
@@ -434,7 +460,7 @@ gui.menubar()
 gui.chatbox()
 gui.chatlist()
 gui.chatinput()
-gui.server_update()
+gui.chat_update("stephanb15","plain")
 gui.end()
 
 ##############################################################################
