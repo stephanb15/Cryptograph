@@ -25,7 +25,6 @@ class GUI:
         self.headfont=('times',14, 'bold')
         #self.init.configure(bg="grey")
         #initial curser position (assumed)
-        self.curserpos=tk.CURRENT
         self.message=tk.Text(self.init, height=2)
         
         #get all contents (messages, contacts from server as initialised)
@@ -150,7 +149,7 @@ class GUI:
         
         button=tk.Button(self.init,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),UserID_alice,UserID_bob)) # insert command=Encryptionfunction
         #the remainder code line works with "lamda" without it dosen't however I don't know why
-        button.grid(row=3,column=2)
+        button.grid(row=2,column=1)
 
     def menubar(self):
         menubar=tk.Menu(self.init)
