@@ -14,23 +14,12 @@ namevar="plain"
 ##############################################################################
 
 class GUI:
-    def __init__(self, x):
-        self.init=x
-        self.iter=0
+    def __init__(self):
+        
+        gui.login()
+        
         #font for headings:
         self.headfont=('times',14, 'bold')
-        #self.init.configure(bg="grey")
-        #initial curser position (assumed)
-        
-        #get all contents (messages, contacts from server as initialised)
-        #maybe for performance create a synchronisation algorithms to
-        #save from big downloads, later
-        
-        #initialise chat - get from server
-        self.chat_update_init("stephanb15","plain")
-        
-        #list of contacts of user
-        self.contacts=list(j.pull(namevar)["message"].keys())
         
     def chat_update_init(self, UserID_alice,UserID_bob):
         
@@ -44,6 +33,11 @@ class GUI:
         ##
         #
         ##
+        
+        #get all contents (messages, contacts from server as initialised)
+        #maybe for performance create a synchronisation algorithms to
+        #save from big downloads, later
+        
         
     def chat_update(self,UserID_alice, UserID_bob):
         #write a function creating a list contaning all messenge keys "
@@ -109,7 +103,6 @@ class GUI:
         j.push(UserID_alice,data)
 
     def input_get(self):
-        #self.iter=self.iter+1
         #get input inserted in the editor at command "Enter Key" or Button
         message=self.message.get(1.0, tk.END)
         self.message.delete(1.0,tk.END)
@@ -125,14 +118,84 @@ class GUI:
         for i in range(len(cols)):
             x.grid_columnconfigure(cols[i][0], weight=cols[i][1])
     
+    
+    def login(self):
+        self.login_win=tk.Tk()
+        self.login_win.title("Cryptograph-Login")
+        self.login_win.resizable(width=False, height=False)
+        l1txt1 ='Login'
+        l2txt1='username:'
+        l3txt1='password:'
+        l1 = tk.Message(self.login_win, width=1000, text=l1txt1)
+        l2 = tk.Message(self.login_win, width=1000, text=l2txt1)
+        l3 = tk.Message(self.login_win, width=1000, text=l3txt1)
+        self.login_usrname=tk.Entry(self.login_win)
+        self.login_password=tk.Entry(self.login_win,show='*')
+        
+        #initialise check variable for login
+        self.login_check_bool=False
+        button=tk.Button(self.login_win,text='Make Login',command=lambda: self.login_make())
+        l1.config(font=self.headfont)
+        l1.grid(row=1,column=1,sticky="nsew")
+        l2.grid(row=2,column=1,sticky="nsew")
+        l3.grid(row=3,column=1,sticky="nsew")
+        self.login_usrname.grid(row=2,column=2,sticky="nsew")
+        self.login_password.grid(row=3,column=2,sticky="nsew")
+        button.grid(row=5,column=2,sticky="nsew")
+            
+        self.login_win.mainloop()
+
+    def login_make(self):
+        usrname=self.login_usrname.get()
+        password=self.login_password.get()
+        self.login_check(usrname,password)
+        if self.login_check_bool==True:
+            self.login_win.destroy()
+            self.home()
+        elif self.login_check_bool==False:
+            ...
+
+                
+    def login_check(self,username, passphrase):
+        #checks if the login makes sence /is correct
+        #check if username exists:
+        adress=j.ip_adress_format()+username +".json"
+        #this status_code trick is snippled from
+        #https://stackoverflow.com/questions/16778435/python-check-if-website-exists
+        direxists = requests.get(adress)
+        if direxists.status_code == 200:
+            self.login_check_bool=True
+        else:
+            self.login_check_bool=False
+        #print(self.login_check_bool)
+        #if 
+        #check if passphrase is correct:
+        #for the beginning the passphrase will just be the username
+        #if 
+        
+    
     def home(self):
         
         UserID_alice=namevar
         UserID_bob="stephanb15"
         
+        #initialise chat - get from server
+        self.chat_update_init("stephanb15","plain")
+        
+        #list of contacts of user
+        self.contacts=list(j.pull(namevar)["message"].keys())
+        
+        
+        
+        #GUI
+        
+        home_root = tk.Tk()
+        self.init=home_root
+        
+        self.init.title("Cryptograph")
+        self.menubar()
+        
         #Frames
-        
-        
         self.home_paned=tk.PanedWindow(self.init,bd=10)
         self.home_paned.pack(fill="both", expand=True)
                 
@@ -182,8 +245,12 @@ class GUI:
         self.grid_adjuste(self.home_frame2,[[1,1]],[[1,1],[2,1]])
         
         self.home_paned.add(self.home_frame1,sticky="nsew",stretch="always")
-        self.home_paned.add(self.home_frame2,sticky="nsew",stretch="always")
+        self.home_paned.add(self.home_frame2,sticky="nsew")
         
+        
+        gui.chat_update("stephanb15","plain")
+        
+        self.end()
       
         
 
@@ -304,11 +371,15 @@ class ioserver:
         #self.serveradressHome="http://localhost:8000/"
         self.username="stephanb15"    
     
+    def ip_adress_format(self):
+        path=self.serveradressHome+":"+self.PortHome+"/"
+        return path
+    
     def pull(self,UserID_sender):
         #get the pulblic Key, messages from user :UserID
         #https://docs.python.org/3/howto/urllib2.html
         #https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
-        pathHome=self.serveradressHome+":"+self.PortHome+"/"+UserID_sender +".json"
+        pathHome=self.ip_adress_format()+UserID_sender +".json"
         with urllib.request.urlopen(pathHome) as response:
             data=response.read().decode()
             outptdict=json.loads(data)
@@ -322,7 +393,7 @@ class ioserver:
         #create byte data
         data=bytes(data,encoding='utf8')
         #print(data)
-        pathHome=self.serveradressHome+":"+self.PortHome+"/"+UserID_sender +".json"
+        pathHome=self.ip_adress_format()+UserID_sender +".json"
         pushed = urllib.request.Request(url=pathHome, data=data,method='POST')
         try:
             urllib.request.urlopen(pushed)
@@ -485,13 +556,9 @@ class Decrypt:
 ##############################################################################
 
 j=ioserver("http://188.23.146.121","8000")
-root = tk.Tk()
-root.title("Cryptograph")
-gui=GUI(root)
-gui.home()
-gui.menubar()
-gui.chat_update("stephanb15","plain")
-gui.end()
+
+gui=GUI()
+
 
 ##############################################################################
 #                             Testing
