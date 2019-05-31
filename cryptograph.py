@@ -181,7 +181,7 @@ class GUI:
     
     def home(self):
         
-        UserID_bob="stephanb15"
+        UserID_bob="Mustermann"
         
         #initialise chat - get from server
         self.chat_update_init(self.UserID_Alice,UserID_bob)
@@ -371,7 +371,6 @@ class ioserver:
         self.PortHome=PortHome
         #for testing- use the localhost
         #self.serveradressHome="http://localhost:8000/"
-        self.username="stephanb15"    
     
     def ip_adress_format(self):
         path=self.serveradressHome+":"+self.PortHome+"/"
