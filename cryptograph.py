@@ -13,11 +13,11 @@ namevar="plain"
 
 class GUI:
     def __init__(self):
-        
-        gui.login()
-        
+        self.headFont=('times',14, 'bold')
+        #self.oldset=set()
+        self.login()
         #font for headings:
-        self.headfont=('times',14, 'bold')
+        
         
     def chat_update_init(self, UserID_alice,UserID_bob):
         
@@ -90,7 +90,7 @@ class GUI:
         #prints the message "message" from User "namevar" to the gui
         #if send==True the message is printed to the server
         
-        self.iot.insert(tk.END,'\n'+UserID_bob+">> "+message)
+        self.iot.insert(tk.END,'\n'+ UserID_bob +">> "+message)
         
     def input_send(self,message,UserID_alice,UserID_bob):
         print(message)
@@ -133,7 +133,7 @@ class GUI:
         #initialise check variable for login
         self.login_check_bool=False
         button=tk.Button(self.login_win,text='Make Login',command=lambda: self.login_make())
-        l1.config(font=self.headfont)
+        l1.config(font=self.headFont)
         l1.grid(row=1,column=1,sticky="nsew")
         l2.grid(row=2,column=1,sticky="nsew")
         l3.grid(row=3,column=1,sticky="nsew")
@@ -181,14 +181,13 @@ class GUI:
     
     def home(self):
         
-        UserID_bob="plain"
+        UserID_bob="stephanb15"
         
         #initialise chat - get from server
-        self.chat_update_init(self.UserID_Alice,"plain")
-        
+        self.chat_update_init(self.UserID_Alice,UserID_bob)
         #list of contacts of user
         self.contacts=list(j.pull(namevar)["message"].keys())
-        
+
         
         
         #GUI
@@ -251,9 +250,8 @@ class GUI:
         self.home_paned.add(self.home_frame1,sticky="nsew",stretch="always")
         self.home_paned.add(self.home_frame2,sticky="nsew")
         
-        
-        gui.chat_update(self.UserID_Alice,"plain")
-        
+        self.chat_update(self.UserID_Alice,UserID_bob)
+                
         self.end()
       
         
@@ -287,7 +285,7 @@ class GUI:
         msg1 = tk.Message(men,width=1000, text=text1)
         msg2 = tk.Message(men,width=1000, text=text2)
         msg3 = tk.Message(men,width=1000, text=text3)
-        msg1.config(font=self.headfont)
+        msg1.config(font=self.headFont)
         msg1.grid(row=1,column=1,sticky="nsew")
         msg2.grid(row=2,column=1,sticky="nsew")
         msg3.grid(row=3,column=1,sticky="nsew")
@@ -310,7 +308,7 @@ class GUI:
         l2 = tk.Message(men, width=1000, text=l1txt1+'\n'+l1txt2+'\n'+l1txt3)
         l3 = tk.Message(men, width=1000, text='Authors names:')
         l4 = tk.Message(men, width=1000, text=l2txt1+'\n'+l2txt2+'\n'+l2txt3)
-        l1.config(font=self.headfont)
+        l1.config(font=self.headFont)
         l3.config(font=('times',12, 'bold'))
         l1.grid(row=1,column=1,sticky="nsew")
         l2.grid(row=2,column=1,sticky="nsew")
@@ -332,7 +330,7 @@ class GUI:
         l3 = tk.Message(men, width=1000, text=l3txt1)
         usrname=tk.Entry(men)
         button=tk.Button(men,text='Find user')#, command= lambda: self.input_get())
-        l1.config(font=self.headfont)
+        l1.config(font=self.headFont)
         l1.grid(row=1,column=1,sticky="nsew")
         l2.grid(row=2,column=1,sticky="nsew")
         usrname.grid(row=3,column=1,sticky="nsew")
