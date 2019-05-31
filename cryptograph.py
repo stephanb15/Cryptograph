@@ -1,6 +1,4 @@
-import math
 import tkinter as tk
-import numpy as np
 import json
 import urllib.request
 import requests
@@ -142,7 +140,6 @@ class GUI:
         self.login_usrname.grid(row=2,column=2,sticky="nsew")
         self.login_password.grid(row=3,column=2,sticky="nsew")
         button.grid(row=5,column=2,sticky="nsew")
-            
         self.login_win.mainloop()
 
     def login_make(self):
@@ -151,7 +148,15 @@ class GUI:
         self.login_check(usrname,password)
         if self.login_check_bool==True:
             self.login_win.destroy()
+            #the following are IMPORTANT initalisations
+            self.UserID_Alice=usrname
             self.home()
+            #Note:
+            #you are allowed to (create instance of class tk.Tk())
+            #create instance, mainloop instance, create another instance, mainloop other instance
+            #for some reason however
+            #Create instance, Create another instance, create mainloop of instance, create mainloop of other instance
+            #gives an exception error
         elif self.login_check_bool==False:
             ...
 
@@ -176,11 +181,10 @@ class GUI:
     
     def home(self):
         
-        UserID_alice=namevar
-        UserID_bob="stephanb15"
+        UserID_bob="plain"
         
         #initialise chat - get from server
-        self.chat_update_init("stephanb15","plain")
+        self.chat_update_init(self.UserID_Alice,"plain")
         
         #list of contacts of user
         self.contacts=list(j.pull(namevar)["message"].keys())
@@ -218,7 +222,7 @@ class GUI:
             self.lst.insert(tk.END,self.contacts[x])
         
         ####button
-        button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),UserID_alice,UserID_bob)) # insert command=Encryptionfunction
+        button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,UserID_bob)) # insert command=Encryptionfunction
         #the remainder code line works with "lamda" without it dosen't however I don't know why
         button.grid(row=2,column=1)
         
@@ -248,7 +252,7 @@ class GUI:
         self.home_paned.add(self.home_frame2,sticky="nsew")
         
         
-        gui.chat_update("stephanb15","plain")
+        gui.chat_update(self.UserID_Alice,"plain")
         
         self.end()
       
