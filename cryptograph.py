@@ -16,16 +16,11 @@ namevar="plain"
 class GUI:
     def __init__(self, x):
         self.init=x
-        listbox = tk.Listbox(self.init)
-        self.lst=listbox
-        iotext=tk.Text(self.init)#,width=100,height=40)
-        self.iot=iotext
         self.iter=0
         #font for headings:
         self.headfont=('times',14, 'bold')
         #self.init.configure(bg="grey")
         #initial curser position (assumed)
-        self.message=tk.Text(self.init, height=2)
         
         #get all contents (messages, contacts from server as initialised)
         #maybe for performance create a synchronisation algorithms to
@@ -35,7 +30,7 @@ class GUI:
         self.chat_update_init("stephanb15","plain")
         
         #list of contacts of user
-        self.contacts=list(self.server_content["message"].keys())
+        self.contacts=list(j.pull(namevar)["message"].keys())
         
     def chat_update_init(self, UserID_alice,UserID_bob):
         
@@ -129,27 +124,68 @@ class GUI:
             x.grid_rowconfigure(rows[i][0], weight=rows[i][1])
         for i in range(len(cols)):
             x.grid_columnconfigure(cols[i][0], weight=cols[i][1])
-        
-    def chatbox(self):
-        self.iot.grid(row=1,column=2,sticky="nsew")
     
-    def chatinput(self):
+    def home(self):
+        
+        UserID_alice=namevar
+        UserID_bob="stephanb15"
+        
+        #Frames
+        
+        
+        self.home_paned=tk.PanedWindow(self.init,bd=10)
+        self.home_paned.pack(fill="both", expand=True)
+                
+        self.home_frame1=tk.Frame(self.init)
+        #self.home_frame1.grid(row=1,column=1,sticky="nsew")
+        self.home_frame2=tk.Frame(self.init)
+        #self.home_frame2.grid(row=1,column=2,sticky="nsew")
+        
+        
+        self.message=tk.Text(self.home_frame2, height=4)
+        
+        ###output input window
         self.message.grid(row=2,column=2,sticky="nsew")
         
-    def chatlist(self):
+        ###chat list
+        self.lst = tk.Listbox(self.home_frame1)
         self.lst.grid(row=1,column=1,sticky="nsew")
         #get json file contacts and insert contents here: example:
         for x in range(len(self.contacts)):
             self.lst.insert(tk.END,self.contacts[x])
         
-    def button(self):
-        
-        UserID_alice=namevar
-        UserID_bob="stephanb15"
-        
-        button=tk.Button(self.init,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),UserID_alice,UserID_bob)) # insert command=Encryptionfunction
+        ####button
+        button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),UserID_alice,UserID_bob)) # insert command=Encryptionfunction
         #the remainder code line works with "lamda" without it dosen't however I don't know why
         button.grid(row=2,column=1)
+        
+        ###output window
+        self.iot=tk.Text(self.home_frame2,wrap=tk.WORD)
+        self.iot.grid(row=1,column=2,sticky="nsew")
+        
+        ###scrollbar
+        self.home_scrollbar=tk.Scrollbar(self.home_frame2, orient=tk.VERTICAL, command=self.iot.yview)
+        self.home_scrollbar.grid(row=1,column=3,sticky="nsew")
+        
+        self.iot['yscrollcommand']=self.home_scrollbar.set
+        
+        ###scrollbar
+        self.home_scrollbar_mes=tk.Scrollbar(self.home_frame2, orient=tk.VERTICAL, command=self.message.yview)
+        self.home_scrollbar_mes.grid(row=2,column=3,sticky="nsew")
+        
+        self.message['yscrollcommand']=self.home_scrollbar_mes.set
+        
+        
+        #adjust the grid
+        #self.grid_adjuste(self.init,[[1,1]],[[1,1],[2,10]])
+        self.grid_adjuste(self.home_frame1,[[1,1]],[[1,1]])
+        self.grid_adjuste(self.home_frame2,[[1,1]],[[1,1],[2,1]])
+        
+        self.home_paned.add(self.home_frame1,sticky="nsew",stretch="always")
+        self.home_paned.add(self.home_frame2,sticky="nsew",stretch="always")
+        
+      
+        
 
     def menubar(self):
         menubar=tk.Menu(self.init)
@@ -167,7 +203,6 @@ class GUI:
         configure.add_command(label='change default server',command=lambda: self.men_serverconf())
         configure.add_command(label='Encryption Algorithm',command= lambda: self.men_encryptconf())
         self.init.config(menu=menubar)
-        
         
     def men_help(self):
         men=tk.Tk()
@@ -198,7 +233,7 @@ class GUI:
         l1txt2='It was created in 2019 by a team of students at the university of Vienna'
         l1txt3='(faculty of matheamtics) as part of a programming practical.'
         l2txt1='Jakob Lanser   a11806538@unet.univie.ac.at'
-        l2txt2='Saifullah   Totakhel a11713253@unet.univie.ac.at'
+        l2txt2='Saifullah Totakhel a11713253@unet.univie.ac.at'
         l2txt3='Stephan Bornberg   a01506156@unet.univie.ac.at'
         l1 = tk.Message(men ,width=1000, text='''Cryptograph 1.0:''')
         l2 = tk.Message(men, width=1000, text=l1txt1+'\n'+l1txt2+'\n'+l1txt3)
@@ -453,12 +488,8 @@ j=ioserver("http://188.23.146.121","8000")
 root = tk.Tk()
 root.title("Cryptograph")
 gui=GUI(root)
-gui.grid_adjuste(root,[[1,1]],[[1,1],[2,10]])
-gui.button()
+gui.home()
 gui.menubar()
-gui.chatbox()
-gui.chatlist()
-gui.chatinput()
 gui.chat_update("stephanb15","plain")
 gui.end()
 
