@@ -41,7 +41,7 @@ class GUI:
         #write a function creating a list contaning all messenge keys "
         # i.e "2019-05-29 18:30:59.099567" 
         #after every server_update compare those lists
-        #and if the list is alterd, print the contents to the gui 
+        #and if the list is alterd, print the contents to the gui
         #of the matheamtical complement (set difference) of the old set to the new list
         
         #essential, as otherwise messanges no messages would income
@@ -186,7 +186,7 @@ class GUI:
         #initialise chat - get from server
         self.chat_update_init(self.UserID_Alice,UserID_bob)
         #list of contacts of user
-        self.contacts=list(j.pull(namevar)["message"].keys())
+        self.contacts=list(j.pull(self.UserID_Alice)["message"].keys())
 
         
         
@@ -215,10 +215,13 @@ class GUI:
         
         ###chat list
         self.lst = tk.Listbox(self.home_frame1)
+        self.lst.bind('<<ListboxSelect>>', print(self.lst.curselection()))
         self.lst.grid(row=1,column=1,sticky="nsew")
         #get json file contacts and insert contents here: example:
         for x in range(len(self.contacts)):
             self.lst.insert(tk.END,self.contacts[x])
+        
+
         
         ####button
         button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,UserID_bob)) # insert command=Encryptionfunction
@@ -277,7 +280,6 @@ class GUI:
         men=tk.Tk()
         men.title("Cryptograph-Help")
         men.resizable(width=False, height=False)
-        guih=GUI(men)
         text1='Cryptograph-Helppage:'
         text2='The help documentation can be found at:'
         text3='https://homepage.univie.ac.at/stephanb15/Applications/Cryptograph/documentation.html'
@@ -289,14 +291,13 @@ class GUI:
         msg1.grid(row=1,column=1,sticky="nsew")
         msg2.grid(row=2,column=1,sticky="nsew")
         msg3.grid(row=3,column=1,sticky="nsew")
-        guih.end()
+        men.mainloop()
         
     def men_about(self):
         men=tk.Tk()
         #men.geometry("500x500")
         men.title("Cryptograph-About")
         men.resizable(width=False, height=False)
-        guih=GUI(men)
         self.grid_adjuste(self.init,[[1,1]],[[1,1]])
         l1txt1='This is a communication software with built in cryptographic algorithms.'
         l1txt2='It was created in 2019 by a team of students at the university of Vienna'
@@ -314,13 +315,12 @@ class GUI:
         l2.grid(row=2,column=1,sticky="nsew")
         l3.grid(row=3,column=1,sticky="nsew")
         l4.grid(row=4,column=1,sticky="nsew")
-        guih.end()
+        men.mainloop()
         
     def men_addcontact(self):
         men=tk.Tk()
         men.title("Cryptograph-Add contact")
         men.resizable(width=False, height=False)
-        guih=GUI(men)
         l1txt1 ='Add Contacts'
         l2txt1='Input an exististing username.'
         l2txt2='(If the username does not exists de Feedback dialog will print an error)'
@@ -339,24 +339,22 @@ class GUI:
         #Write some input box add contact and a button 
         #if contact exists add the contact- else print: contact doesn't exists
         #if wrinting it advanced use some search function
-        guih.end()
+        men.mainloop()
     
     def men_serverconf(self):
         men=tk.Tk()
         men.title("Cryptograph-Server Configurations")
-        guih=GUI(men)
         #Write some input box to add website containing ip adress
         #in my case https://homepage.univie.ac.at/stephanb15/Applications/Cryptograph/serverip.json
         #print error messages
         #if wrinting it advanced use some search function
-        guih.end()
+        men.mainloop()
         
     def men_encryptconf(self):
         men=tk.Tk()
         men.title("Cryptograph-Server Configurations")
-        guih=GUI(men)
         #choose boxes (these dots) where you can choose the algorithm
-        guih.end()
+        men.mainloop()
 
     def end(self):
         self.init.mainloop()
