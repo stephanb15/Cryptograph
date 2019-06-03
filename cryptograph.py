@@ -4,9 +4,6 @@ import urllib.request
 import requests
 
 
-namevar="plain"
-
-
 ##############################################################################
 #                             GUI
 ##############################################################################
@@ -15,17 +12,26 @@ class GUI:
     def __init__(self):
         self.headFont=('times',14, 'bold')
         #self.oldset=set()
+        
+        #is a dictionary buffering all incomming messages
+        self.chat_buffer={}
+        
+        self.newset={}
+        self.oldset={}
+        
         self.login()
         #font for headings:
         
-        
-    def chat_update_init(self, UserID_alice,UserID_bob):
+    def chat_update_init(self, UserID_alice,list_UserIDs_bob):
         
         #get all server contents from Bob
-        self.server_content=j.pull(UserID_bob)
-        
-        #sieve messages dedicated to Alice 
-        self.oldset=set(self.server_content["message"][UserID_alice].keys())
+        for i in range(len(list_UserIDs_bob)):
+            self.server_content=j.pull(list_UserIDs_bob[i])
+            #sieve messages dedicated to Alice 
+            self.oldset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
+            
+            #initialise buffer by creating lists dedicated to UserID-keys
+            self.chat_buffer[list_UserIDs_bob[i]]=[]
         
         #print chat history
         ##
@@ -37,7 +43,8 @@ class GUI:
         #save from big downloads, later
         
         
-    def chat_update(self,UserID_alice, UserID_bob):
+    def chat_update(self,UserID_alice, list_UserIDs_bob):
+        print(self.chat_buffer)
         #write a function creating a list contaning all messenge keys "
         # i.e "2019-05-29 18:30:59.099567" 
         #after every server_update compare those lists
@@ -45,25 +52,29 @@ class GUI:
         #of the matheamtical complement (set difference) of the old set to the new list
         
         #essential, as otherwise messanges no messages would income
-        self.server_content=j.pull(UserID_bob) ######## CHANGE PLAIN TO GENERAL USERID
-        
-        self.newset=set(self.server_content["message"][UserID_alice].keys())
-        #print(self.newset)
-        difference=self.newset-self.oldset
-        self.oldset=self.newset
-        
-        #order the differnce-set by date and print out the dedicated messages
-        #, so the dictionary[key] where key is element of set, "difference"
-        difference=sorted(list(difference))
-        # sorting is necessary, so the date-time of the message is sorted
-        #sorting creates a list with first old messages - then new messages
-        print(difference)
-        
-        #print these messages in the gui
-        for i in range(len(difference)):
-            message=self.server_content["message"][UserID_alice][difference[i]]["message"]
-            print(message)
-            self.input_make_bob(message,UserID_bob)
+        for i in range(len(list_UserIDs_bob)):
+            self.server_content=j.pull(list_UserIDs_bob[i]) ######## CHANGE PLAIN TO GENERAL USERID
+            
+            self.newset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
+            #print(self.newset)
+            difference=self.newset[list_UserIDs_bob[i]]-self.oldset[list_UserIDs_bob[i]]
+            self.oldset[list_UserIDs_bob[i]]=self.newset[list_UserIDs_bob[i]]
+            
+            #order the differnce-set by date and print out the dedicated messages
+            #, so the dictionary[key] where key is element of set, "difference"
+            difference=sorted(list(difference))
+            # sorting is necessary, so the date-time of the message is sorted
+            #sorting creates a list with first old messages - then new messages
+            #print(difference)
+            
+            #print these messages in the gui
+            for ii in range(len(difference)):
+                message=self.server_content["message"][UserID_alice][difference[ii]]["message"]
+                message_print='\n'+ list_UserIDs_bob[ii] +">> "+message
+                self.chat_buffer[list_UserIDs_bob[ii]].append([difference[ii],message_print])
+                #print(message)
+                if self.UserID_Bob==list_UserIDs_bob[ii]:
+                    self.input_make_bob(message_print,list_UserIDs_bob[ii],difference[ii])
         
         #Write a function to print the messages in specific window- not all of them in the same
         
@@ -73,7 +84,7 @@ class GUI:
         #change this (milliseconds) if update is to slow- however performance might increase
         chat_update_period=2000
         
-        self.init.after(chat_update_period, lambda: self.chat_update(UserID_alice,UserID_bob))
+        self.init.after(chat_update_period, lambda: self.chat_update(UserID_alice,list_UserIDs_bob))
         
         
         #lambda is magic- without tkinter does shit
@@ -82,15 +93,15 @@ class GUI:
         #prints the message "message" from User "namevar" to the gui
         #if send==True the message is printed to the server
         
-        self.iot.insert(tk.END,'\n'+UserID_alice+">> "+message)
+        message_print='\n'+UserID_alice+">> "+message
+        self.iot.insert(tk.END,message_print)
         self.input_send(message,UserID_alice,UserID_bob)
-        #Create command line
+        self.chat_buffer[UserID_bob].append(["",message_print])
     
-    def input_make_bob(self,message,UserID_bob):
+    def input_make_bob(self,message_print,UserID_bob,datetime):
         #prints the message "message" from User "namevar" to the gui
         #if send==True the message is printed to the server
-        
-        self.iot.insert(tk.END,'\n'+ UserID_bob +">> "+message)
+        self.iot.insert(tk.END,message_print)
         
     def input_send(self,message,UserID_alice,UserID_bob):
         print(message)
@@ -115,7 +126,6 @@ class GUI:
             x.grid_rowconfigure(rows[i][0], weight=rows[i][1])
         for i in range(len(cols)):
             x.grid_columnconfigure(cols[i][0], weight=cols[i][1])
-    
     
     def login(self):
         self.login_win=tk.Tk()
@@ -177,17 +187,39 @@ class GUI:
         #check if passphrase is correct:
         #for the beginning the passphrase will just be the username
         #if 
-        
     
+    def input_userSwitch(self):
+        #A function which switches the text window output by
+        listbox_row=self.lst.curselection()[0]
+        
+        #current UserID pf communication partner
+        UserID_bob_curr=self.contacts[listbox_row]
+        
+        #delete contents of Textbox
+        self.iot.delete('1.0', tk.END)
+        
+        #print buffered messages of user: User_ID_bob_curr
+        buffer=self.chat_buffer[UserID_bob_curr]
+        if buffer !=[]:
+            for i in range(len(buffer)):
+                self.iot.insert(tk.END,buffer[i][1])
+            
+        
+        #Set self.UserID_Bob
+        self.UserID_Bob=UserID_bob_curr
+
     def home(self):
         
-        UserID_bob="Mustermann"
-        
-        #initialise chat - get from server
-        self.chat_update_init(self.UserID_Alice,UserID_bob)
         #list of contacts of user
         self.contacts=list(j.pull(self.UserID_Alice)["message"].keys())
-
+        
+        
+        #initialise chat - get from server
+        self.chat_update_init(self.UserID_Alice,self.contacts)
+        
+        #initialise self.UserID_Bob - the current communication partner
+        self.UserID_Bob=self.contacts[0]
+        #so there must be at least one existing partner
         
         
         #GUI
@@ -215,7 +247,11 @@ class GUI:
         
         ###chat list
         self.lst = tk.Listbox(self.home_frame1)
-        self.lst.bind('<<ListboxSelect>>', print(self.lst.curselection()))
+        self.lst.bind('<<ListboxSelect>>',lambda x: self.input_userSwitch())
+        #don't ask me why but here you will need an "x" after lambda and
+        #before ":"
+        #https://stackoverflow.com/questions/16215045/typeerror-lambda-takes-no-arguments-1-given
+        
         self.lst.grid(row=1,column=1,sticky="nsew")
         #get json file contacts and insert contents here: example:
         for x in range(len(self.contacts)):
@@ -224,7 +260,7 @@ class GUI:
 
         
         ####button
-        button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,UserID_bob)) # insert command=Encryptionfunction
+        button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,self.UserID_Bob)) # insert command=Encryptionfunction
         #the remainder code line works with "lamda" without it dosen't however I don't know why
         button.grid(row=2,column=1)
         
@@ -253,7 +289,7 @@ class GUI:
         self.home_paned.add(self.home_frame1,sticky="nsew",stretch="always")
         self.home_paned.add(self.home_frame2,sticky="nsew")
         
-        self.chat_update(self.UserID_Alice,UserID_bob)
+        self.chat_update(self.UserID_Alice,self.contacts)
                 
         self.end()
       
