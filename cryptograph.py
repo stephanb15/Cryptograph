@@ -379,17 +379,64 @@ class GUI:
     
     def men_serverconf(self):
         men=tk.Tk()
-        men.title("Cryptograph-Server Configurations")
-        #Write some input box to add website containing ip adress
-        #in my case https://homepage.univie.ac.at/stephanb15/Applications/Cryptograph/serverip.json
-        #print error messages
-        #if wrinting it advanced use some search function
+        men.title("Cryptograph-Change Default server")
+        men.resizable(width=False, height=False)
+        l1txt1 ='Insert http address here'
+        l1 = tk.Message(men, width=1000, text=l1txt1)
+        adress=tk.Entry(men)
+        button=tk.Button(men,text='Configure server')#, command= lambda: self.input_get())
+        l1.config(font=self.headFont)
+        l1.grid(row=1,column=1,sticky="nsew")
+        adress.grid(row=3,column=1,sticky="nsew")
+        button.grid(row=4,column=1,sticky="nsew")
         men.mainloop()
         
     def men_encryptconf(self):
+        #In order to choose from different encryption algorithm, a input format will
+        #be given. And one can create his one algorithm by composition of
+        #predefined Encryption algoritms
+        ## Syntax:
+        # ":" is a seperator which stands for the "little o symbol"
+        # which is commonly used in mathematics to notate compostions of functions
+        # f and g, thus
+        # f:g is the composition of f taking g as argument
+        # one can create compositions of infinite length by reusing this notation
+        # and by the knowledge, that ":" is associativ
+        # Thus for example f:g:e:g:f:g:h
+        # is a "more conplex" algorithm
+        #or more genreally
+        # Let (f_{i}) be a finite sequence where each part of the sequence is an
+        # element of a Set of Cryptographic Functions (which I will defined later accuratly)
+        # I state that this Programm can Encrypt by computing Compositions of the form
+        # f_{1}:f_{2}:f_{3}:...:f_{n} 
+        # now the Set of Encryption Functions (for this programm)
+        # can be found below (Where each function of the Set is a Function of the python class defined below)
+        
+        #Here I will assign names for these functions
+        # RSA:="in class Encrypt function RSA(prime1, prime2)"
+        # where for the beginning prime1, prime2, are to be fixed primes
+        # Later I will create more sophisticated algorithms
+    
+
+        #The last paragraph is not exact i will change it later
+
         men=tk.Tk()
-        men.title("Cryptograph-Server Configurations")
-        #choose boxes (these dots) where you can choose the algorithm
+        men.title("Cryptograph-Change Encryption Algorithm")
+        men.resizable(width=False, height=False)
+        l1txt1 ='Cryptographic Configurations'
+        l2txt1 ='Insert Algorithm expenation here'
+        l3txt1 ='(See the help menue)'
+        l1 = tk.Message(men, width=1000, text=l1txt1)
+        l2 = tk.Message(men, width=1000, text=l2txt1)
+        l3 = tk.Message(men, width=1000, text=l3txt1)
+        encryptcode=tk.Entry(men)
+        button=tk.Button(men,text='Configure server')#, command= lambda: self.input_get())
+        l1.config(font=self.headFont)
+        l1.grid(row=1,column=1,sticky="nsew")
+        l2.grid(row=2,column=1,sticky="nsew")
+        l3.grid(row=3,column=1,sticky="nsew")
+        encryptcode.grid(row=4,column=1,sticky="nsew")
+        button.grid(row=5,column=1,sticky="nsew")
         men.mainloop()
 
     def end(self):
