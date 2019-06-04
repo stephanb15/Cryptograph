@@ -70,11 +70,10 @@ class GUI:
             #print these messages in the gui
             for ii in range(len(difference)):
                 message=self.server_content["message"][UserID_alice][difference[ii]]["message"]
-                message_print='\n'+ list_UserIDs_bob[ii] +">> "+message
-                self.chat_buffer[list_UserIDs_bob[ii]].append([difference[ii],message_print])
+                message_print='\n'+ list_UserIDs_bob[i] +">> "+message
+                self.chat_buffer[list_UserIDs_bob[i]].append([difference[ii],message_print])
                 #print(message)
-                if self.UserID_Bob==list_UserIDs_bob[ii]:
-                    self.input_make_bob(message_print,list_UserIDs_bob[ii],difference[ii])
+                self.input_make_bob(message_print,list_UserIDs_bob[i],difference[ii])
         
         #Write a function to print the messages in specific window- not all of them in the same
         
@@ -99,9 +98,9 @@ class GUI:
         self.chat_buffer[UserID_bob].append(["",message_print])
     
     def input_make_bob(self,message_print,UserID_bob,datetime):
-        #prints the message "message" from User "namevar" to the gui
-        #if send==True the message is printed to the server
-        self.iot.insert(tk.END,message_print)
+        #prints the message "message" from User "UserID_bob" to the gui
+        if self.UserID_Bob==UserID_bob:
+            self.iot.insert(tk.END,message_print)
         
     def input_send(self,message,UserID_alice,UserID_bob):
         print(message)
@@ -191,8 +190,9 @@ class GUI:
     def input_userSwitch(self):
         #A function which switches the text window output by
         listbox_row=self.lst.curselection()[0]
+        #print("listbox ", listbox_row)
         
-        #current UserID pf communication partner
+        #current UserID of communication partner
         UserID_bob_curr=self.contacts[listbox_row]
         
         #delete contents of Textbox
