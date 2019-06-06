@@ -485,9 +485,6 @@ class ioserver:
             #aldough writing to the server now works without a client error 
             #this is a dirty solution
             print("Server Communication Error")
-        #Push the pulblic Key, and messages to self.username
-        #maybe try "pip install ssh" but i would not like to do it with that
-        #requests.put(pathHome,data)
 
 class virtstaticip:
     #this class handles pull task(s) for maintaining a virtual static ip
@@ -574,8 +571,8 @@ def fastexp(base,power):
 ##############################################################################
 
 
-class Keys:
-    def RSA(prime1,prime2):
+class RSA:
+    def Keys(prime1,prime2):
         #find the keys for RSA encryption decryption
         n=prime1*prime2
         phin=(prime1-1)*(prime2-1)
@@ -595,39 +592,18 @@ class Keys:
         private=(d,(prime1,prime2))
         return (public,private)
 
-class Encrypt:
-    def __init__(self,x):
-        #input is to be the data you like to encrypt
-        if isinstance(x,float):
-            self.float=x
-        elif isinstance(x,int):
-            self.int=x
-        elif isinstance(x,str):
-            self.str=x
-        else:
-            print("Your input",x,"is not understood by this class")
-            print("    try a different data type")
-
-    def RSA(self, pubkey):
+    def Encrypt(message, pubkey):
         #input the RSA public key tupel "pubkey" 
-        encryption=(self.int)**pubkey[0] % pubkey[1]
+        encryption=(message)**pubkey[0] % pubkey[1]
         return encryption
 
-class Decrypt:
-    def __init__(self,x):
-        #input is to be the data which you like to decrypt
-        if isinstance(x,float):
-            self.float=x
-        elif isinstance(x,int):
-            self.int=x
-        elif isinstance(x,str):
-            self.str=x
-        else:
-            print("Your input",x,"is not understood by this class")
-            print("    try a different data type")
-    def RSA(self, privkey):
+    def Decrypt(message, privkey):
         #input the RSA public key tupel "pubkey" 
-        decryption=fastexp((self.int),privkey[0]) % (privkey[1][0]*privkey[1][1])
+        #decryption=fastexp((message),privkey[0]) % (privkey[1][0]*privkey[1][1])
+        
+        #the following python build in function is much faster in calculating the power modulo something
+        decryption=pow(message,privkey[0],(privkey[1][0]*privkey[1][1]))
+        
         #decryption=self.int**privkey[0] % (privkey[1][0]*privkey[1][1])
         return decryption
 
@@ -647,18 +623,21 @@ gui=GUI()
 ##############################################################################
 
 ###Testing Encryption
-e=Encrypt(232342)
-k=Keys
+g=RSA
 
-mykeys=k.RSA(823,827)
-print(mykeys)
+mykeys=g.Keys(7337488745629403488410174275830423641502142554560856136484326749638755396267050319392266204256751706077766067020335998122952792559058552724477442839630133,56713727820156410577229101238628035243)#823,827)
+#print(mykeys)
+testvalues=[12343123431234345678909876543234567890555577777777777777777777346222222653764875558968753672415247637648578697483672]
+for i in range(len(testvalues)):
+    mysterytext=g.Encrypt(testvalues[i],mykeys[0])
+    print(mysterytext)
+    text=g.Decrypt(mysterytext, mykeys[1])
+    print(text)
+    
 
-mysterytext=e.RSA(mykeys[0])
-print(mysterytext)
-
-d=Decrypt(mysterytext)
-readblmess=d.RSA(mykeys[1])
-print(readblmess)
+#d=Decrypt(mysterytext)
+#readblmess=d.RSA(mykeys[1])
+#print(readblmess)
 
 #Testing Json
 
