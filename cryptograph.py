@@ -604,19 +604,52 @@ class RSA:
         
         #Creating Blocks
         message_str=str(message)
-        message_blocks=[int(message_str[blocklength*i:blocklength*(i+1)]) for i in range(math.ceil(len(message_str)/blocklength))]
+        maxindex=len(message_str)-1
+        #indexl=math.ceil(len(message_str)/blocklength)
+        
+        #DEFINTION: of indexl
+        #indexl:=max({0,blocklength, ...., n*blocklength}), such that n:=max({i; i*blocklength<=maxindex})
+        #This is equivalent to 
+        if len(message_str)>blocklength:
+            indexl= len(message_str)-len(message_str)%blocklength
+            #last index modulo blocklength of message_str
+        else:
+            indexl=0
+        
+        #DEFINTION: of indexll
+        #indexll:=max({i; i*blocklength<=maxindex}\{n}), where n is defined aboth
+        #this is equivalent to
+        if indexl>blocklength:
+            indexll=indexl-blocklength
+            #last index modulo blocklength which is not indexl
+        elif indexl==blocklength:
+            #so as indexl=blocklength according to definition of indexl, indexll can either be equal 0 or equal blocklength 
+            #so as indexll exculdes n "\{n}", it can just be equal 0
+            indexll=0
+        elif indexl<blocklength:
+            #as indexl < blocklength undefined  as indexll=max{"empty set"} is undefined
+            print("Undefined case: indexl < blocklength")
+        
+        
+        #DEFINTION: of message_blocks
+        message_blocks=[int(message_str[indexl:maxindex+1])]
+            
+        
+        if indexl>=blocklength:
+            message_blocks.extend([int(message_str[blocklength*i:blocklength*(i+1)]) for i in range(int(indexll/blocklength))])
+            
         #proof that message is a contenation of the elements of message_blocks such that
-        #message == message_blocks[0] || message_blocks[1] || ... || message_blocks[n], 
-        #where n is the maximal preojection of list message_blocks
+        #message == message_blocks[0] || message_blocks[1] || ... || message_blocks[n],
+        #where n is the maximal projection of list message_blocks
         #PROOF: 
-        #if len(message_str) <= blocklength
-        #math.ceil(len(message_str)/blocklength)==1,
-        #so, message_blocks==[message_str[0:blocklength]]  <-- this would result in message != message_blocks[0], as message_str[0:blocklength] could be undefined --"List index out of range"
-        #len(message_blocks) == math.ceil(len(message_str)/blocklength))
-        chifrat_blocks=[]
+        #if len(message_str) < blocklength
+        #
+        chiffrat_blocks=[]
         for i in range(len(message_blocks)):
-            chifrat_blocks.append(RSA.Encrypt(message_blocks[i], pubkey))
-
+            #contenate the encrypted blocks
+            chiffrat_blocks.append(RSA.Encrypt(message_blocks[i], pubkey))
+        return chiffrat_blocks
+        
     def Decrypt(message, privkey):
         #input the RSA public key tupel "pubkey" 
         #decryption=fastexp((message),privkey[0]) % (privkey[1][0]*privkey[1][1])
@@ -656,7 +689,7 @@ prime2=3125250912230709951372256510072774348164206451981118444862954305561681091
 mykeys=g.Keys(prime1,prime2)#823,827)
 #print(mykeys)
 #testvalues=[1000000100000010000001000000]*10
-print([1000000]*1000)
+#print([1000000]*1000)
 #testvalues=[100000**10]*10
 
 #I like to allow the first 1000000 unicode characters to be used for sending messages
@@ -669,12 +702,13 @@ print([1000000]*1000)
 #I think its reasonable to create a characterset- map for each encryption technic, so as a general approach might be a security issue for a non- OAEP-RSA 
 #encryption technique
 
-testvalues=[1000000**10]*1000
+testvalues=[7]
 for i in range(len(testvalues)):
-    mysterytext=g.Encrypt(testvalues[i],mykeys[0])
-    print(hex(mysterytext))
-    text=g.Decrypt(mysterytext, mykeys[1])
-    print(text)
+    mysterytext=g.Encrypt_large(testvalues[i],mykeys[0],22)
+    #mysterytext=g.Encrypt(testvalues[i],mykeys[0])
+    print(mysterytext)
+    #text=g.Decrypt(mysterytext, mykeys[1])
+    #print(text)
     
 
 #d=Decrypt(mysterytext)
