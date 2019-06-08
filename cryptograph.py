@@ -2,7 +2,7 @@ import tkinter as tk
 import json
 import urllib.request
 import requests
-
+import os
 
 ##############################################################################
 #                             GUI
@@ -594,7 +594,8 @@ class RSA:
 
     def Encrypt(message, pubkey):
         #input the RSA public key tupel "pubkey" 
-        encryption=(message)**pubkey[0] % pubkey[1]
+        #encryption=(message)**pubkey[0] % pubkey[1]
+        encryption=pow(message,pubkey[0],pubkey[1])
         return encryption
 
     def Decrypt(message, privkey):
@@ -607,7 +608,13 @@ class RSA:
         #decryption=self.int**privkey[0] % (privkey[1][0]*privkey[1][1])
         return decryption
 
-
+class OAEP:
+    #Optimal Asymmetric Encryption Padding
+    #https://de.wikipedia.org/wiki/Optimal_Asymmetric_Encryption_Padding
+    def Keys():
+        #there is only one private key
+        k0=20
+        print(os.urandom(k0))
 
 ##############################################################################
 #                             Main
@@ -624,13 +631,29 @@ gui=GUI()
 
 ###Testing Encryption
 g=RSA
+prime1=7337488745629403488410174275830423641502142554560856136484326749638755396267050319392266204256751706077766067020335998122952792559058552724477442839630133
+prime2=3125250912230709951372256510072774348164206451981118444862954305561681091773335180100000000000000000537
 
-mykeys=g.Keys(7337488745629403488410174275830423641502142554560856136484326749638755396267050319392266204256751706077766067020335998122952792559058552724477442839630133,56713727820156410577229101238628035243)#823,827)
+mykeys=g.Keys(prime1,prime2)#823,827)
 #print(mykeys)
-testvalues=[12343123431234345678909876543234567890555577777777777777777777346222222653764875558968753672415247637648578697483672]
+#testvalues=[1000000100000010000001000000]*10
+print([1000000]*1000)
+#testvalues=[100000**10]*10
+
+#I like to allow the first 1000000 unicode characters to be used for sending messages
+# I'm afraid using large unicode unicode sets where most of these unicodes will unlikely be used for text messaging, might couse securitx risc
+#without combination with some algorithm like OAEP
+
+#I will block theses unicodes (mathematically speaking I will concatenate theses unicodes so that the resulting string is smaller than prime1*prime2)
+# then I will apply OAEP-RSA
+
+#I think its reasonable to create a characterset- map for each encryption technic, so as a general approach might be a security issue for a non- OAEP-RSA 
+#encryption technique
+
+testvalues=[10000000000000000000000000000000000000000000000000000000000002345234000000000000000000000000000000000999999999999999999]*1000
 for i in range(len(testvalues)):
     mysterytext=g.Encrypt(testvalues[i],mykeys[0])
-    print(mysterytext)
+    print(hex(mysterytext))
     text=g.Decrypt(mysterytext, mykeys[1])
     print(text)
     
