@@ -3,6 +3,7 @@ import json
 import urllib.request
 import requests
 import os
+import math
 
 ##############################################################################
 #                             GUI
@@ -597,6 +598,24 @@ class RSA:
         #encryption=(message)**pubkey[0] % pubkey[1]
         encryption=pow(message,pubkey[0],pubkey[1])
         return encryption
+    
+    def Encrypt_large(message, pubkey, blocklength):
+        # A function encrypting messages larger than prime1*prime2 by building blocks
+        
+        #Creating Blocks
+        message_str=str(message)
+        message_blocks=[int(message_str[blocklength*i:blocklength*(i+1)]) for i in range(math.ceil(len(message_str)/blocklength))]
+        #proof that message is a contenation of the elements of message_blocks such that
+        #message == message_blocks[0] || message_blocks[1] || ... || message_blocks[n], 
+        #where n is the maximal preojection of list message_blocks
+        #PROOF: 
+        #if len(message_str) <= blocklength
+        #math.ceil(len(message_str)/blocklength)==1,
+        #so, message_blocks==[message_str[0:blocklength]]  <-- this would result in message != message_blocks[0], as message_str[0:blocklength] could be undefined --"List index out of range"
+        #len(message_blocks) == math.ceil(len(message_str)/blocklength))
+        chifrat_blocks=[]
+        for i in range(len(message_blocks)):
+            chifrat_blocks.append(RSA.Encrypt(message_blocks[i], pubkey))
 
     def Decrypt(message, privkey):
         #input the RSA public key tupel "pubkey" 
@@ -650,7 +669,7 @@ print([1000000]*1000)
 #I think its reasonable to create a characterset- map for each encryption technic, so as a general approach might be a security issue for a non- OAEP-RSA 
 #encryption technique
 
-testvalues=[10000000000000000000000000000000000000000000000000000000000002345234000000000000000000000000000000000999999999999999999]*1000
+testvalues=[1000000**10]*1000
 for i in range(len(testvalues)):
     mysterytext=g.Encrypt(testvalues[i],mykeys[0])
     print(hex(mysterytext))
