@@ -632,12 +632,13 @@ class RSA:
         
         
         #DEFINTION: of message_blocks
-        message_blocks=[int(message_str[indexl:maxindex+1])]
+        message_blocks=[]
             
         
         if indexl>=blocklength:
-            message_blocks.extend([int(message_str[blocklength*i:blocklength*(i+1)]) for i in range(int(indexll/blocklength))])
-            
+            message_blocks.extend([int(message_str[blocklength*i:blocklength*(i+1)]) for i in range(int(indexll/blocklength)+1)])
+        message_blocks.extend([int(message_str[indexl:maxindex+1])])
+        
         #proof that message is a contenation of the elements of message_blocks such that
         #message == message_blocks[0] || message_blocks[1] || ... || message_blocks[n],
         #where n is the maximal projection of list message_blocks
@@ -659,6 +660,13 @@ class RSA:
         
         #decryption=self.int**privkey[0] % (privkey[1][0]*privkey[1][1])
         return decryption
+    
+    def Decrypt_large(message_blocks, privkey):
+        message_plain=""
+        for i in range(len(message_blocks)):
+            #contenate the decrypted blocks
+            message_plain+=str(RSA.Decrypt(message_blocks[i], privkey))
+        return int(message_plain)
 
 class OAEP:
     #Optimal Asymmetric Encryption Padding
@@ -702,13 +710,14 @@ mykeys=g.Keys(prime1,prime2)#823,827)
 #I think its reasonable to create a characterset- map for each encryption technic, so as a general approach might be a security issue for a non- OAEP-RSA 
 #encryption technique
 
-testvalues=[7]
+testvalues=[78544333333333333333986593733333333323412451245333333333333333333333326]
 for i in range(len(testvalues)):
     mysterytext=g.Encrypt_large(testvalues[i],mykeys[0],22)
     #mysterytext=g.Encrypt(testvalues[i],mykeys[0])
     print(mysterytext)
+    plaintext=g.Decrypt_large(mysterytext, mykeys[1])
     #text=g.Decrypt(mysterytext, mykeys[1])
-    #print(text)
+    print(plaintext)
     
 
 #d=Decrypt(mysterytext)
