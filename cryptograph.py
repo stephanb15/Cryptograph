@@ -571,8 +571,64 @@ def fastexp(base,power):
 #                             Cryptography
 ##############################################################################
 
+class Crypto_method:
+    #This class switches the cryptographic algorithmus.
+    #assigned by the method_str string,
+    #The messaeg_str is assumed to be of countable length
+    #(Methodes Encrypt_large, Decrypt_Large in class RSA where created for that reason)
+    
+    def Assign_number(message_str):
+        #Maybe i should make this function more general in the future
+        # For now the first 99999 Unicode characters can be encrypted
+        #for the reason, that its very unlikely, that the first 100 characters will be 
+        # used very much more likely than the following (assuming english conversation,
+        #this doesn't hold for asian communication), this function might be inefficient
+        #furthermore it shouldn't be used with RSA but only in combination with OEAP --security risk
+        
+        message_numb=""
+        
+        for i in range(len(message_str)):
+            
+            numb_unform=ord(message_str[i])
+            str_unform=str(numb_unform)
+            len_numb=len(str_unform)
+            
+            #create a formated string
+            if len_numb > 99999:
+                str_form="65533" #this is the unicode for replacment character, 65533==ord("�")
+                # https://en.wikipedia.org/wiki/Specials_(Unicode_block)
+            else:
+                #create a block "0...ord(char)"
+                len_zero_block=5-len_numb
+                zero_block="0"*len_zero_block
+                str_form=zero_block+str_unform ## create the formated string
+                #one can proof easily, that str_form has length 5 (which is what I wanted)
+                # PROOF: the addition theorem for length of cantenation is len(a||b)=len(a)+len(b)
+                # so it follows, that len(str_form)=len(zero_block)+len(str_unform)=5-len_numb+len(str_unform)=5
+                # which makes sence (to use length 5)  as its compact in the sense of, that len("99999")=5
+            
+            message_numb+=str_form
+        
+        return message_numb
+        
+    def Assign_charlst():
+        ...
+    
+    def Keys(method_str):
+        ...
+    
+    def Encrypt(method_str, message_str):
+        if method_str== "rsa":
+            RSA.Encrypt_large(message, pubkey, 22)
+        
+    def Decrypt(method_str):
+        ...
+
 
 class RSA:
+    #static methodes are used in this class to prevent chaos
+    #furthermore I don't like having to destroy a class after each instance creation
+    
     def Keys(prime1,prime2):
         #find the keys for RSA encryption decryption
         n=prime1*prime2
@@ -592,6 +648,17 @@ class RSA:
         d=findrepres(d,phin,phin,1)
         private=(d,(prime1,prime2))
         return (public,private)
+    
+    def Keys_auto():
+        #No primes must be given for this keygeneration
+        #another function implemented later (a primefinder) will do that for you
+        
+        #for the beginning these primes will serve as dummy (later a primefinder will be put there instead)
+        prime1=7337488745629403488410174275830423641502142554560856136484326749638755396267050319392266204256751706077766067020335998122952792559058552724477442839630133
+        prime2=3125250912230709951372256510072774348164206451981118444862954305561681091773335180100000000000000000537
+        
+        return RSA.Keys(prime1,prime2)
+        
 
     def Encrypt(message, pubkey):
         #input the RSA public key tupel "pubkey" 
@@ -690,11 +757,8 @@ gui=GUI()
 ##############################################################################
 
 ###Testing Encryption
-g=RSA
-prime1=7337488745629403488410174275830423641502142554560856136484326749638755396267050319392266204256751706077766067020335998122952792559058552724477442839630133
-prime2=3125250912230709951372256510072774348164206451981118444862954305561681091773335180100000000000000000537
 
-mykeys=g.Keys(prime1,prime2)#823,827)
+mykeys=RSA.Keys_auto()#823,827)
 #print(mykeys)
 #testvalues=[1000000100000010000001000000]*10
 #print([1000000]*1000)
@@ -712,14 +776,15 @@ mykeys=g.Keys(prime1,prime2)#823,827)
 
 testvalues=[78544333333333333333986593733333333323412451245333333333333333333333326]
 for i in range(len(testvalues)):
-    mysterytext=g.Encrypt_large(testvalues[i],mykeys[0],22)
+    mysterytext=RSA.Encrypt_large(testvalues[i],mykeys[0],22)
     #mysterytext=g.Encrypt(testvalues[i],mykeys[0])
     print(mysterytext)
-    plaintext=g.Decrypt_large(mysterytext, mykeys[1])
+    plaintext=RSA.Decrypt_large(mysterytext, mykeys[1])
     #text=g.Decrypt(mysterytext, mykeys[1])
     print(plaintext)
     
-
+print(Crypto_method.Assign_number("12str_%&/§f 劒 ▦ ꉨ Ꞥ ꡁ ∉")) ##testing some "random" unicode characters
+print(hex(int(Crypto_method.Assign_number("Some normal length of a message- i might must compress this fomat somehow"))))
 #d=Decrypt(mysterytext)
 #readblmess=d.RSA(mykeys[1])
 #print(readblmess)
