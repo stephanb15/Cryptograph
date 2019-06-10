@@ -12,4 +12,4 @@ Stephan Bornberg
 a01506156@unet.univie.ac.at
 
 
-Projektbeschreibung:
+Projectdescription:
