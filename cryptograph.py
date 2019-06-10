@@ -605,24 +605,47 @@ class Crypto_method:
                 #one can proof easily, that str_form has length 5 (which is what I wanted)
                 # PROOF: the addition theorem for length of cantenation is len(a||b)=len(a)+len(b)
                 # so it follows, that len(str_form)=len(zero_block)+len(str_unform)=5-len_numb+len(str_unform)=5
-                # which makes sence (to use length 5)  as its compact in the sense of, that len("99999")=5
-            
+                # which makes sence (to use length 5)  as its compact in the sence of, that len("99999")=5
             message_numb+=str_form
         
         return message_numb
         
-    def Assign_charlst():
-        ...
+    def Assign_charlst(message_numb):
+        #This is the inverse function of methode Assign_number
+        message_str=""
+        for i in range(int(len(message_numb)/5)): ## the same block length is used here: 5
+            char_numb=message_numb[5*i:5*i+5]
+            char_int=int(char_numb)
+            char_chr=chr(char_int)
+            message_str+=char_chr
+        return message_str
     
     def Keys(method_str):
-        ...
-    
-    def Encrypt(method_str, message_str):
         if method_str== "rsa":
-            RSA.Encrypt_large(message, pubkey, 22)
+            keys=RSA.Keys_auto()
         
-    def Decrypt(method_str):
-        ...
+        return keys
+            
+    def Encrypt(method_str, message_str, keys):
+        # I don't use self here, becouse i don't like to restrict the application of this class function 
+        # I use strings as input output bexouse some cry ptographic methodes other than rsa
+        # don't have numeric chiffre (i.e Substitution, Transopostion)
+        
+        if method_str== "rsa":
+            message_numb=Crypto_method.Assign_number(message_str)
+            print("mes", message_numb)
+            pubkey=keys[0]
+            chiffre=RSA.Encrypt_large(message_numb, pubkey, 24) #the length 19 should be made variable in the future
+        return chiffre
+        
+    def Decrypt(method_str,chiffre,keys):
+        # I don't use self here, becouse i don't like to restrict the application of this class function
+        if method_str== "rsa":
+            privkey=keys[1]
+            message_str=RSA.Decrypt_large(chiffre, privkey,24)
+
+            message_str=Crypto_method.Assign_charlst(message_str)
+        return message_str
 
 
 class RSA:
@@ -666,11 +689,10 @@ class RSA:
         encryption=pow(message,pubkey[0],pubkey[1])
         return encryption
     
-    def Encrypt_large(message, pubkey, blocklength):
+    def Encrypt_large(message_str, pubkey, blocklength):
         # A function encrypting messages larger than prime1*prime2 by building blocks
         
         #Creating Blocks
-        message_str=str(message)
         maxindex=len(message_str)-1
         #indexl=math.ceil(len(message_str)/blocklength)
         
@@ -704,8 +726,14 @@ class RSA:
         
         if indexl>=blocklength:
             message_blocks.extend([int(message_str[blocklength*i:blocklength*(i+1)]) for i in range(int(indexll/blocklength)+1)])
-        message_blocks.extend([int(message_str[indexl:maxindex+1])])
         
+        #The last block must have 0's trailing, else it's easy to construct an example where Decryption will make an error
+        msg_end=message_str[indexl:maxindex+1]
+        msg_end_len=len(msg_end)
+        #add trailing zeros
+        msg_end=msg_end+(blocklength-msg_end_len)*"0"
+        message_blocks.extend([int(msg_end)])
+        print(message_blocks)
         #proof that message is a contenation of the elements of message_blocks such that
         #message == message_blocks[0] || message_blocks[1] || ... || message_blocks[n],
         #where n is the maximal projection of list message_blocks
@@ -728,13 +756,20 @@ class RSA:
         #decryption=self.int**privkey[0] % (privkey[1][0]*privkey[1][1])
         return decryption
     
-    def Decrypt_large(message_blocks, privkey):
+    def Decrypt_large(message_blocks, privkey, blocklength):
         message_plain=""
         for i in range(len(message_blocks)):
             #contenate the decrypted blocks
-            message_plain+=str(RSA.Decrypt(message_blocks[i], privkey))
-        return int(message_plain)
-
+            #restore leading 0's eliminated by int() function in the Encrypt methode
+            message_i=RSA.Decrypt(message_blocks[i], privkey)
+            message_str=str(message_i)
+            len_zero_block=blocklength-len(message_str)
+            print("str1",message_str)
+            message_str=len_zero_block*"0"+message_str
+            print("str2",message_str)
+            message_plain+=message_str
+        return message_plain
+    
 class OAEP:
     #Optimal Asymmetric Encryption Padding
     #https://de.wikipedia.org/wiki/Optimal_Asymmetric_Encryption_Padding
@@ -774,17 +809,26 @@ mykeys=RSA.Keys_auto()#823,827)
 #I think its reasonable to create a characterset- map for each encryption technic, so as a general approach might be a security issue for a non- OAEP-RSA 
 #encryption technique
 
-testvalues=[78544333333333333333986593733333333323412451245333333333333333333333326]
-for i in range(len(testvalues)):
-    mysterytext=RSA.Encrypt_large(testvalues[i],mykeys[0],22)
-    #mysterytext=g.Encrypt(testvalues[i],mykeys[0])
-    print(mysterytext)
-    plaintext=RSA.Decrypt_large(mysterytext, mykeys[1])
-    #text=g.Decrypt(mysterytext, mykeys[1])
-    print(plaintext)
+
+#testvalues=[78544333333333333333986593733333333323412451245333333333333333333333326]
+#for i in range(len(testvalues)):
+#    mysterytext=RSA.Encrypt_large(testvalues[i],mykeys[0],25)
+#    #mysterytext=g.Encrypt(testvalues[i],mykeys[0])
+#    print(mysterytext)
+#    plaintext=RSA.Decrypt_large(mysterytext, mykeys[1])
+#    #text=g.Decrypt(mysterytext, mykeys[1])
+#    print(plaintext)
+
     
-print(Crypto_method.Assign_number("12str_%&/§f 劒 ▦ ꉨ Ꞥ ꡁ ∉")) ##testing some "random" unicode characters
-print(hex(int(Crypto_method.Assign_number("Some normal length of a message- i might must compress this fomat somehow"))))
+#numb=Crypto_method.Assign_number("12str_%&/§f 劒 ▦ ꉨ Ꞥ ꡁ ∉") ##testing some "random" unicode characters
+#print(numb)
+#print(Crypto_method.Assign_charlst(numb))
+message="12str_%&/§f 劒 ▦ ꉨ Ꞥ ꡁ ∉3"
+keys=Crypto_method.Keys("rsa")
+chiffre=Crypto_method.Encrypt("rsa",message,keys)
+decryp=Crypto_method.Decrypt("rsa",chiffre,keys)
+print(decryp)
+#print(hex(int(Crypto_method.Assign_number("Some normal length of a message- i might must compress this fomat somehow"))))
 #d=Decrypt(mysterytext)
 #readblmess=d.RSA(mykeys[1])
 #print(readblmess)
