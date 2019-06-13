@@ -4,13 +4,17 @@ import urllib.request
 import requests
 import os
 import math
-
+import datetime
 ##############################################################################
 #                             GUI
 ##############################################################################
 
 class GUI:
     def __init__(self):
+        
+        self.j=ioserver("http://188.23.146.121","8000")
+        
+        #font for headings:
         self.headFont=('times',14, 'bold')
         #self.oldset=set()
         
@@ -21,13 +25,30 @@ class GUI:
         self.oldset={}
         
         self.login()
-        #font for headings:
         
+        
+        
+    def pubkey_generate(self):
+        # generates a new public key and prints it to the server
+        
+        #initialise new public keys
+        
+        #create a new public key for alice
+        keyID_alice=1
+        method_alice="rsa"
+        self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
+        UserID_alice=self.UserID_Alice
+        data={'senderID': UserID_alice,'publickeys': self.key_alice[0], 'keyID_alice': keyID_alice, "method": method_alice}
+        print(data)
+        self.j.push(UserID_alice,data,"POSTKEY")
+        
+
+    
     def chat_update_init(self, UserID_alice,list_UserIDs_bob):
         
         #get all server contents from Bob
         for i in range(len(list_UserIDs_bob)):
-            self.server_content=j.pull(list_UserIDs_bob[i])
+            self.server_content=self.j.pull(list_UserIDs_bob[i])
             #sieve messages dedicated to Alice 
             self.oldset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
             
@@ -54,7 +75,7 @@ class GUI:
         
         #essential, as otherwise messanges no messages would income
         for i in range(len(list_UserIDs_bob)):
-            self.server_content=j.pull(list_UserIDs_bob[i]) ######## CHANGE PLAIN TO GENERAL USERID
+            self.server_content=self.j.pull(list_UserIDs_bob[i]) ######## CHANGE PLAIN TO GENERAL USERID
             
             self.newset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
             #print(self.newset)
@@ -70,8 +91,14 @@ class GUI:
             
             #print these messages in the gui
             for ii in range(len(difference)):
-                message=self.server_content["message"][UserID_alice][difference[ii]]["message"]
-                message_print='\n'+ list_UserIDs_bob[i] +">> "+message
+                message_chiffre=self.server_content["message"][UserID_alice][difference[ii]]["message"]
+                message_privkey=self.key_alice[1]
+                print("chiffre", message_chiffre)
+                #Decrypt message
+                
+                mesage_decryp=Crypto_method.Decrypt("rsa",message_chiffre,message_privkey)
+                
+                message_print='\n'+ list_UserIDs_bob[i] +">> "+mesage_decryp
                 self.chat_buffer[list_UserIDs_bob[i]].append([difference[ii],message_print])
                 #print(message)
                 self.input_make_bob(message_print,list_UserIDs_bob[i],difference[ii])
@@ -105,11 +132,31 @@ class GUI:
         
     def input_send(self,message,UserID_alice,UserID_bob):
         print(message)
-        j=ioserver("http://188.23.146.121","8000")
-        method="aeion"
-        key="aefaef"
-        data={'senderID': UserID_alice, 'receiverID': UserID_bob ,'publickeys': key, 'message': message}
-        j.push(UserID_alice,data)
+        
+        #for now keyID is constant later there should be a local database of keys created earilier in time
+        # so in order to be able to decrypt messages from earlier time
+        keyID_alice=1
+        keyID_bob=1
+        
+        
+        #Integrating encryption here:
+        #get key from bob
+        server_content=self.j.pull(UserID_bob)
+        print(server_content)
+        #maybe write a request-method in the MyHTTPRequestHandler in the server.py file, so in order to make this more efficient
+        key_bob=server_content["mykey"]["publickey"]
+        method_bob=server_content["mykey"]["method"]
+        keyID_bob=server_content["mykey"]["keyID"]
+        message_chiffre=Crypto_method.Encrypt(method_bob,message,key_bob)
+        
+        #create a new public key for alice
+        method_alice="rsa"
+        self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
+        
+        
+        nowtimedate=str(datetime.datetime.now())
+        data={'senderID': UserID_alice, 'receiverID': UserID_bob ,'publickeys': self.key_alice[0], 'keyID_alice': keyID_alice, 'keyID_bob': keyID_bob , "method": method_alice, 'message': message_chiffre, "nowtimedate":nowtimedate}
+        self.j.push(UserID_alice,data,"POST")
 
     def input_get(self):
         #get input inserted in the editor at command "Enter Key" or Button
@@ -160,6 +207,7 @@ class GUI:
             self.login_win.destroy()
             #the following are IMPORTANT initalisations
             self.UserID_Alice=usrname
+            self.pubkey_generate()
             self.home()
             #Note:
             #you are allowed to (create instance of class tk.Tk())
@@ -174,7 +222,7 @@ class GUI:
     def login_check(self,username, passphrase):
         #checks if the login makes sence /is correct
         #check if username exists:
-        adress=j.ip_adress_format()+username +".json"
+        adress=self.j.ip_adress_format()+username +".json"
         #this status_code trick is snippled from
         #https://stackoverflow.com/questions/16778435/python-check-if-website-exists
         direxists = requests.get(adress)
@@ -212,7 +260,7 @@ class GUI:
     def home(self):
         
         #list of contacts of user
-        self.contacts=list(j.pull(self.UserID_Alice)["message"].keys())
+        self.contacts=list(self.j.pull(self.UserID_Alice)["message"].keys())
         
         
         #initialise chat - get from server
@@ -468,7 +516,7 @@ class ioserver:
             outptdict=json.loads(data)
         return outptdict
     
-    def push(self,UserID_sender,data):
+    def push(self,UserID_sender,data, method):
         #data must be an dictionary of 
         #the userID dedicated to you
         #create a json string from python dictionary
@@ -477,7 +525,7 @@ class ioserver:
         data=bytes(data,encoding='utf8')
         #print(data)
         pathHome=self.ip_adress_format()+UserID_sender +".json"
-        pushed = urllib.request.Request(url=pathHome, data=data,method='POST')
+        pushed = urllib.request.Request(url=pathHome, data=data,method=method)
         try:
             urllib.request.urlopen(pushed)
         except:
@@ -486,6 +534,8 @@ class ioserver:
             #aldough writing to the server now works without a client error 
             #this is a dirty solution
             print("Server Communication Error")
+        
+        
 
 class virtstaticip:
     #this class handles pull task(s) for maintaining a virtual static ip
@@ -626,7 +676,7 @@ class Crypto_method:
         
         return keys
             
-    def Encrypt(method_str, message_str, keys):
+    def Encrypt(method_str, message_str, pubkey):
         # I don't use self here, becouse i don't like to restrict the application of this class function 
         # I use strings as input output bexouse some cry ptographic methodes other than rsa
         # don't have numeric chiffre (i.e Substitution, Transopostion)
@@ -634,17 +684,21 @@ class Crypto_method:
         if method_str== "rsa":
             message_numb=Crypto_method.Assign_number(message_str)
             print("mes", message_numb)
-            pubkey=keys[0]
             chiffre=RSA.Encrypt_large(message_numb, pubkey, 24) #the length 19 should be made variable in the future
+        else:
+            #if the method is incorrect/ not given, there will be an identity en/decryption-
+            message_str=chiffre
         return chiffre
         
-    def Decrypt(method_str,chiffre,keys):
+    def Decrypt(method_str,chiffre,privkey):
         # I don't use self here, becouse i don't like to restrict the application of this class function
         if method_str== "rsa":
-            privkey=keys[1]
             message_str=RSA.Decrypt_large(chiffre, privkey,24)
 
             message_str=Crypto_method.Assign_charlst(message_str)
+        else:
+            #if the method is incorrect/ not given, there will be an identity en/decryption-
+            message_str=chiffre
         return message_str
 
 
@@ -782,8 +836,6 @@ class OAEP:
 #                             Main
 ##############################################################################
 
-j=ioserver("http://188.23.146.121","8000")
-
 gui=GUI()
 
 
@@ -825,8 +877,8 @@ mykeys=RSA.Keys_auto()#823,827)
 #print(Crypto_method.Assign_charlst(numb))
 message="12str_%&/§f 劒 ▦ ꉨ Ꞥ ꡁ ∉3"
 keys=Crypto_method.Keys("rsa")
-chiffre=Crypto_method.Encrypt("rsa",message,keys)
-decryp=Crypto_method.Decrypt("rsa",chiffre,keys)
+chiffre=Crypto_method.Encrypt("rsa",message,keys[0])
+decryp=Crypto_method.Decrypt("rsa",chiffre,keys[1])
 print(decryp)
 #print(hex(int(Crypto_method.Assign_number("Some normal length of a message- i might must compress this fomat somehow"))))
 #d=Decrypt(mysterytext)

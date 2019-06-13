@@ -24,7 +24,6 @@ import http.server
 import socketserver
 import os
 import json
-import datetime
 
 PORT = 8000
 
@@ -44,25 +43,45 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         bindata=self.rfile.read(length)
         data=str(bindata,encoding='utf8')
         pydict=json.loads(data)
+        
         publickeys=pydict["publickeys"]
         message=pydict["message"]
         sender=pydict["senderID"]
-        receiver=pydict["receiverID"]
-        
+        UserID_bob=pydict["receiverID"]
+        keyID_alice= pydict['keyID_alice']
+        keyID_bob= pydict['keyID_bob']
+        method=pydict['method']
+        nowtimedate=pydict['nowtimedate']
         #get data from sender
         file=open(sender +'.json', 'r')
         extndData=json.load(file)
-        nowtimedate=str(datetime.datetime.now())
+        
         #update the server dicitionary
-        extndData["message"][receiver].update({nowtimedate: {"publickey": publickeys , "message": message }})
+        extndData["message"][UserID_bob].update({nowtimedate: {"keyID": keyID_bob , "message": message }})
+        extndData["mykey"].update({  "keyID" : keyID_alice, "method" : method ,"publickey": publickeys})
         #write the server dicitonary
         filepath= sender+".json"
         outfile=open(filepath, 'w')
         json.dump(extndData,outfile)
         
+    def do_POSTKEY(self):
+        length = int(self.headers['Content-Length'])
+        bindata=self.rfile.read(length)
+        data=str(bindata,encoding='utf8')
+        pydict=json.loads(data)
+        publickeys=pydict["publickeys"]
+        keyID_alice= pydict['keyID_alice']
+        method=pydict['method']
+        sender=pydict["senderID"]
         
+        file=open(sender +'.json', 'r')
+        extndData=json.load(file)
         
+        extndData["mykey"].update({  "keyID" : keyID_alice, "method" : method ,"publickey": publickeys})
         
+        filepath= sender+".json"
+        outfile=open(filepath, 'w')
+        json.dump(extndData,outfile)
         
 Handler =  MyHTTPRequestHandler
 
