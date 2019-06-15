@@ -103,7 +103,7 @@ def questionnaire():
     
     sub = input("Wieviele Substitutionschiffren sollen erstellt werden?")
     trans = input("Wieviele Translationschiffren sollen erstellt werden?")
-    plain = input("Welcher Text soll verschlüsselt werden?\nBitte nur Buchstaben des neues englischen Alphabets eingeben!")
+    plain = input("Welcher Text soll verschlüsselt werden?\nBitte nur Buchstaben des neuen englischen Alphabets eingeben!")
     
     return [sub,trans,plain]
 
