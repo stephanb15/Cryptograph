@@ -1,46 +1,71 @@
-import numpy as np
-
-prime = 7
-generator = 3
+import random
 
 class User:
     
     def __init__(self):
         
-        self.prime = prime
-        self.generator = generator
-        self.private_Key = np.random.randint(2,prime)
-        self.public_Key = (generator**self.private_Key)%prime
+        self.private_Key = random.randint(2,5)
+        self.public_Cyclic = None
+        self.public_Key = None
+        self.public_Exponent = None
+        self.full_Key = None
     
-    def get_Public_Key(self):
-        return self.public_Key
+    def set_Cyclic(self,cyclic):
+        
+        self.public_Cyclic = cyclic
+        
+    def set_Public_Key(self,key):
+        
+        self.public_Key = key
+        
+    def generate_Keys(self):
+        
+        self.public_Exponent = pow(self.public_Key,self.private_Key, self.public_Cyclic)
+                                  
+    def get_Exponent(self):
+        
+        return self.public_Exponent
+
+    def calculate_Full_Key(self, friend_Exponent):
+        
+        self.full_Key = pow(friend_Exponent, self.private_Key, self.public_Cyclic)
+                                  
+      
+    def encrypt_Message(self,message):
+        
+        encrypted_Message = [chr((ord(message[i]) * self.full_Key)) for i in range(len(message))]
+        print(encrypted_Message)
+        return "".join(encrypted_Message)
     
-    def encrypt_Message(self, message, key_Recipient):
+    def decrypt_Message(self,message):
         
-        key_Recipient = key_Recipient
-        key = (generator**self.private_Key)%prime
-        key = (key**key_Recipient)%prime
-        encrypted_Message = ""
-        for c in message:
-            encrypted_Message += chr(ord(c)*key)
-        return encrypted_Message
+        decrypted_Message = [chr((int(ord(message[i]) / self.full_Key))) for i in range(len(message))]
+        print(decrypted_Message)
+        return "".join(decrypted_Message)
+    
+    def test(self):    
         
-    def decrypt_Message(self, encrypted_Message, key_Sender):
-       
-        key_Sender = key_Sender
-        private_Key = self.private_Key
-        key = (key_Sender**(1/private_Key))%prime
-        decrypted_Message = ""
-        for c in encrypted_Message:
-            decrypted_Message += chr(int(ord(c)*key))
-        return decrypted_Message
-            
-User = User()
+        print(self.public_Cyclic)
+        print(self.private_Key)
+        print(self.public_Key)
+        print(self.public_Exponent)
+        print(self.full_Key)
 
-a = User.get_Public_Key()
-
-print(User.encrypt_Message("Hallo",a))
-
-a = User.get_Public_Key()
-
-print(User.decrypt_Message(User.encrypt_Message("Hallo",a),a))
+        
+#Simulation
+a = User()
+b = User()
+a.set_Cyclic(17)
+b.set_Cyclic(17)
+a.set_Public_Key(2)
+b.set_Public_Key(2)
+a.generate_Keys()
+b.generate_Keys()
+a.calculate_Full_Key(b.get_Exponent())
+b.calculate_Full_Key(a.get_Exponent())
+aa = a.encrypt_Message("Ich hoffe, dass dieser Satz genau in dieser Form wiedergegeben wird.")
+print(aa)
+bb = b.decrypt_Message(aa)
+print(bb)
+a.test()
+b.test()            
