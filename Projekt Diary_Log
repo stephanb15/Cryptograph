@@ -41,3 +41,4 @@ Eintragungen:
 03.06.2019 : B : 4h : get Gui working - multiple conversation partners
 09.06.2019 : B : 4h : prepare integration of cryptography algorithms to class GUI
 10.06.2019 : B : 5h : prepare integration of cryptography algorithms to class GUI -by now "long"-encrpytion and encrypting UNICODES <99999 is supported
+16.06.2019 : L : 4h : user, client, server, composition
