@@ -15,7 +15,10 @@ class GUI:
         self.j=ioserver("http://188.23.146.121","8000")
         
         #font for headings:
+        self.bg="grey70"#"cadet blue"
         self.headFont=('times',14, 'bold')
+        self.buttonFont=('times',14, 'italic')
+        self.buttonColor="white smoke" #"LightSteelBlue3" #
         #self.oldset=set()
         
         #is a dictionary buffering all incomming messages
@@ -189,7 +192,7 @@ class GUI:
         
         #initialise check variable for login
         self.login_check_bool=False
-        button=tk.Button(self.login_win,text='Make Login',command=lambda: self.login_make())
+        button=tk.Button(self.login_win,text='Make Login',command=lambda: self.login_make(),relief="flat",bg="LightSteelBlue3", font=self.buttonFont)
         l1.config(font=self.headFont)
         l1.grid(row=1,column=1,sticky="nsew")
         l2.grid(row=2,column=1,sticky="nsew")
@@ -279,20 +282,30 @@ class GUI:
         self.init.title("Cryptograph")
         self.menubar()
         
-        #Frames
+        #paned 1'st order
         self.home_paned=tk.PanedWindow(self.init,bd=10)
+        self.home_paned.configure(bg=self.bg)
         self.home_paned.pack(fill="both", expand=True)
-                
+        
+        
+        
         self.home_frame1=tk.Frame(self.init)
         #self.home_frame1.grid(row=1,column=1,sticky="nsew")
         self.home_frame2=tk.Frame(self.init)
         #self.home_frame2.grid(row=1,column=2,sticky="nsew")
         
         
-        self.message=tk.Text(self.home_frame2, height=4)
+        #paned 2'nd order
+        self.home_subpaned=tk.PanedWindow(self.home_frame2,orient="vertical")
+        self.home_subpaned.configure(bg=self.bg)
+        self.home_subpaned.pack(fill="both", expand=True)
         
-        ###output input window
-        self.message.grid(row=2,column=2,sticky="nsew")
+
+        self.home_subframe2_1=tk.Frame(self.home_frame2)
+        #self.home_frame1.grid(row=1,column=1,sticky="nsew")
+        self.home_subframe2_2=tk.Frame(self.home_frame2)
+        #self.home_frame2.grid(row=1,column=2,sticky="nsew")
+                
         
         ###chat list
         self.lst = tk.Listbox(self.home_frame1)
@@ -309,34 +322,43 @@ class GUI:
 
         
         ####button
-        button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,self.UserID_Bob)) # insert command=Encryptionfunction
+        button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,self.UserID_Bob),bg=self.buttonColor ,relief="groove", font=self.buttonFont) # insert command=Encryptionfunction
         #the remainder code line works with "lamda" without it dosen't however I don't know why
         button.grid(row=2,column=1)
         
+        
         ###output window
-        self.iot=tk.Text(self.home_frame2,wrap=tk.WORD)
-        self.iot.grid(row=1,column=2,sticky="nsew")
+        self.iot=tk.Text(self.home_subframe2_1,wrap=tk.WORD)
+        self.iot.grid(row=1,column=1,sticky="nsew")
         
         ###scrollbar
-        self.home_scrollbar=tk.Scrollbar(self.home_frame2, orient=tk.VERTICAL, command=self.iot.yview)
-        self.home_scrollbar.grid(row=1,column=3,sticky="nsew")
-        
+        self.home_scrollbar=tk.Scrollbar(self.home_subframe2_1, orient=tk.VERTICAL, command=self.iot.yview, width=15)
+        self.home_scrollbar.grid(row=1,column=2,sticky="nsew")
         self.iot['yscrollcommand']=self.home_scrollbar.set
         
-        ###scrollbar
-        self.home_scrollbar_mes=tk.Scrollbar(self.home_frame2, orient=tk.VERTICAL, command=self.message.yview)
-        self.home_scrollbar_mes.grid(row=2,column=3,sticky="nsew")
         
+        ###input window
+        self.message=tk.Text(self.home_subframe2_2, height=4)
+        self.message.grid(row=1,column=1,sticky="nsew")
+        
+        ###scrollbar
+        self.home_scrollbar_mes=tk.Scrollbar(self.home_subframe2_2, orient=tk.VERTICAL, command=self.message.yview, width=15)
+        self.home_scrollbar_mes.grid(row=1,column=2,sticky="nsew")
         self.message['yscrollcommand']=self.home_scrollbar_mes.set
         
         
         #adjust the grid
         #self.grid_adjuste(self.init,[[1,1]],[[1,1],[2,10]])
-        self.grid_adjuste(self.home_frame1,[[1,1]],[[1,1]])
-        self.grid_adjuste(self.home_frame2,[[1,1]],[[1,1],[2,1]])
+        self.grid_adjuste(self.home_frame1,[[1,1],[2,0]],[[1,1]])
+        self.grid_adjuste(self.home_subframe2_1,[[1,1]],[[1,1],[2,0]])
+        self.grid_adjuste(self.home_subframe2_2,[[1,1]],[[1,1],[2,0]])
+        
         
         self.home_paned.add(self.home_frame1,sticky="nsew",stretch="always")
         self.home_paned.add(self.home_frame2,sticky="nsew")
+        
+        self.home_subpaned.add(self.home_subframe2_1,sticky="nsew",stretch="always")
+        self.home_subpaned.add(self.home_subframe2_2,sticky="nsew")
         
         self.chat_update(self.UserID_Alice,self.contacts)
                 
