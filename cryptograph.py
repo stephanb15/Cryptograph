@@ -21,6 +21,10 @@ class GUI:
         self.buttonColor="white smoke" #"LightSteelBlue3" #
         #self.oldset=set()
         
+        #some image 
+        self.wrkdir = os.path.dirname(__file__)
+        self.icon_path=os.path.join(self.wrkdir,"Icons","icon.gif" )
+        
         #is a dictionary buffering all incomming messages
         self.chat_buffer={}
         
@@ -28,8 +32,6 @@ class GUI:
         self.oldset={}
         
         self.login()
-        
-        
         
     def pubkey_generate(self):
         # generates a new public key and prints it to the server
@@ -178,28 +180,49 @@ class GUI:
             x.grid_columnconfigure(cols[i][0], weight=cols[i][1])
     
     def login(self):
+        
+        
         self.login_win=tk.Tk()
         self.login_win.title("Cryptograph-Login")
         self.login_win.resizable(width=False, height=False)
-        l1txt1 ='Login'
-        l2txt1='username:'
-        l3txt1='password:'
-        l1 = tk.Message(self.login_win, width=1000, text=l1txt1)
-        l2 = tk.Message(self.login_win, width=1000, text=l2txt1)
-        l3 = tk.Message(self.login_win, width=1000, text=l3txt1)
-        self.login_usrname=tk.Entry(self.login_win)
-        self.login_password=tk.Entry(self.login_win,show='*')
         
+        #Frame Head
+        self.login_frame_head=tk.Frame(self.login_win,bd=10)
+        frm_h=self.login_frame_head
+        self.icon_img = tk.PhotoImage(file=self.icon_path)
+        photo=tk.Label(frm_h, image = self.icon_img)
+        photo.grid(row=1,column=2,sticky="nsew")
+        l1txt1 ='Login'
+        l1 = tk.Message(self.login_frame_head, width=1000, text=l1txt1)
+        l1.grid(row=1,column=1,sticky="nsew")
+        l1.config(font=self.headFont)
+        
+        #Frame Options
+        frm_o=self.login_frame_opt=tk.Frame(self.login_win,bd=10)
+        l2txt1='Username:'
+        l3txt1='Password:'
+        l2 = tk.Message(self.login_frame_opt, width=1000, text=l2txt1)
+        l3 = tk.Message(self.login_frame_opt, width=1000, text=l3txt1)
+        l2.grid(row=1,column=1,sticky="nsew")
+        l3.grid(row=2,column=1,sticky="nsew")
+        log=self.login_usrname=tk.Entry(self.login_frame_opt)
+        pswd=self.login_password=tk.Entry(self.login_frame_opt,show='*')
+        log.grid(row=1,column=2,sticky="nsew")
+        pswd.grid(row=2,column=2,sticky="nsew")
+        
+        #Frame Foot
+        frm_f=self.login_frame_foot=tk.Frame(self.login_win,bd=10)
         #initialise check variable for login
         self.login_check_bool=False
-        button=tk.Button(self.login_win,text='Make Login',command=lambda: self.login_make(),relief="flat",bg="LightSteelBlue3", font=self.buttonFont)
-        l1.config(font=self.headFont)
-        l1.grid(row=1,column=1,sticky="nsew")
-        l2.grid(row=2,column=1,sticky="nsew")
-        l3.grid(row=3,column=1,sticky="nsew")
-        self.login_usrname.grid(row=2,column=2,sticky="nsew")
-        self.login_password.grid(row=3,column=2,sticky="nsew")
-        button.grid(row=5,column=2,sticky="nsew")
+        button=tk.Button(self.login_frame_foot,text='Make Login',command=lambda: self.login_make(),relief="flat",bg=self.buttonColor, font=self.buttonFont)
+        button.grid(row=1,column=1,sticky="nsew")
+        
+        #Put it together
+        frm_h.grid(row=1,column=1,sticky="nsew")
+        frm_o.grid(row=2,column=1,sticky="nsew")
+        frm_f.grid(row=3,column=1,sticky="nsew")
+        
+        
         self.login_win.mainloop()
 
     def login_make(self):
@@ -262,6 +285,7 @@ class GUI:
 
     def home(self):
         
+        
         #list of contacts of user
         self.contacts=list(self.j.pull(self.UserID_Alice)["message"].keys())
         
@@ -278,7 +302,14 @@ class GUI:
         
         home_root = tk.Tk()
         self.init=home_root
-        
+        #create platform independant path
+        #https://stackoverflow.com/questions/6036129/platform-independent-file-paths
+        try:
+            self.init.tk.call('wm', 'iconphoto', self.init._w, self.icon_img)
+        except:
+            ...
+        #i found the above here:
+        #https://stackoverflow.com/questions/11176638/tkinter-tclerror-error-reading-bitmap-file
         self.init.title("Cryptograph")
         self.menubar()
         
@@ -322,9 +353,11 @@ class GUI:
 
         
         ####button
-        button=tk.Button(self.home_frame1,text='Encrypt/send Message', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,self.UserID_Bob),bg=self.buttonColor ,relief="groove", font=self.buttonFont) # insert command=Encryptionfunction
+        button=tk.Button(self.home_frame1,text='Encrypt/send Message ✍', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,self.UserID_Bob),bg=self.buttonColor ,relief="groove", font=self.buttonFont) # insert command=Encryptionfunction
+        #used a unicode character for this:
+        #https://unicode-table.com/en/270D/
         #the remainder code line works with "lamda" without it dosen't however I don't know why
-        button.grid(row=2,column=1)
+        button.grid(row=2,column=1,sticky="nsew")
         
         
         ###output window
