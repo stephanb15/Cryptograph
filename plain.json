@@ -3,10 +3,10 @@
     "message" : 
                 {
                 
-                "stephanb15": {
+                "plain": {
                             "28.05.2019":{
                                          "keyID": "1",
-                                         "message": "Hello World"
+                                         "message": ""
                                          }
                             }
                 },

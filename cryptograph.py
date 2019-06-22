@@ -5,6 +5,7 @@ import requests
 import os
 import math
 import datetime
+import http.client
 ##############################################################################
 #                             GUI
 ##############################################################################
@@ -12,11 +13,11 @@ import datetime
 class GUI:
     def __init__(self):
         
-        self.j=ioserver("http://188.23.146.121","8000")
+        self.j=ioserver("188.23.146.121","8000")
         
         #font for headings:
         self.bg="grey70"#"cadet blue"
-        self.headFont=('times',14, 'bold')
+        self.headFont=('times',14)
         self.buttonFont=('times',14, 'italic')
         self.buttonColor="white smoke" #"LightSteelBlue3" #
         #self.oldset=set()
@@ -191,9 +192,12 @@ class GUI:
         frm_h=self.login_frame_head
         self.icon_img = tk.PhotoImage(file=self.icon_path)
         photo=tk.Label(frm_h, image = self.icon_img)
-        photo.grid(row=1,column=2,sticky="nsew")
-        l1txt1 ='Login'
+        photo.grid(row=3,column=1,sticky="nsew")
+        l1txt1 ='Login to Cryptograph'
         l1 = tk.Message(self.login_frame_head, width=1000, text=l1txt1)
+        hline=tk.Canvas(self.login_frame_head, height=20)
+        hline.create_line(5, 5, 500, 5)
+        hline.grid(row=2,column=1,sticky="nsew")
         l1.grid(row=1,column=1,sticky="nsew")
         l1.config(font=self.headFont)
         
@@ -215,12 +219,19 @@ class GUI:
         #initialise check variable for login
         self.login_check_bool=False
         button=tk.Button(self.login_frame_foot,text='Make Login',command=lambda: self.login_make(),relief="flat",bg=self.buttonColor, font=self.buttonFont)
+        button2=tk.Button(self.login_frame_foot,text='Create Account',command=lambda: self.login_make_account_data(),relief="flat",bg=self.buttonColor, font=self.buttonFont)
         button.grid(row=1,column=1,sticky="nsew")
+        button2.grid(row=1,column=2,sticky="nsew")
+        
+        
+        hline2=tk.Canvas(self.login_win, height=10)
+        hline2.create_line(20, 5, 500, 5)
+        hline2.grid(row=3,column=1,sticky="nsew")
         
         #Put it together
         frm_h.grid(row=1,column=1,sticky="nsew")
         frm_o.grid(row=2,column=1,sticky="nsew")
-        frm_f.grid(row=3,column=1,sticky="nsew")
+        frm_f.grid(row=4,column=1,sticky="nsew")
         
         
         self.login_win.mainloop()
@@ -243,8 +254,41 @@ class GUI:
             #gives an exception error
         elif self.login_check_bool==False:
             ...
-
-                
+        
+        
+    def login_make_account_data(self):
+        l4txt1="Reenter Password"
+        l4 = tk.Message(self.login_frame_opt, width=1000, text=l4txt1)
+        l4.grid(row=3,column=1,sticky="nsew")
+        pswd2=tk.Entry(self.login_frame_opt,show='*')
+        pswd2.grid(row=3,column=2,sticky="nsew")
+        button3=tk.Button(self.login_frame_foot,text='Confirm Account',command=lambda: self.make_account_server() ,relief="flat",bg=self.buttonColor, font=self.buttonFont)
+        button3.grid(row=1,column=2,sticky="nsew")
+    
+    def make_account_server(self):
+        #input is string
+        UserID_bob=self.login_usrname.get()
+        
+        dict_py={"UserID" :UserID_bob,
+                    "message" : { 
+                            UserID_bob: {
+                                    "28.05.2019":{
+                                            "keyID": "1",
+                                            "message": ""
+                                            }
+                                    }
+                                    },
+                    "mykey" : {  "keyID" : 1,
+                               "method" : "rsa",
+                               "publickey": "123423"
+                               }
+                    }
+        dict_js=json.dumps(dict_py)
+        
+        if self.finduser(UserID_bob)==False:
+            #create an "account" - so a .json file on the server side
+            ...
+    
     def login_check(self,username, passphrase):
         #checks if the login makes sence /is correct
         #check if username exists:
@@ -558,7 +602,7 @@ class ioserver:
         #self.serveradressHome="http://localhost:8000/"
     
     def ip_adress_format(self):
-        path=self.serveradressHome+":"+self.PortHome+"/"
+        path="http://"+self.serveradressHome+":"+self.PortHome+"/"
         return path
     
     def pull(self,UserID_sender):
@@ -590,8 +634,25 @@ class ioserver:
             #this is a dirty solution
             print("Server Communication Error")
         
+    def finduser(self,UserID_bob):
+        #pushed = urllib.request.Request(url=pathHome, data=data,method="FINDUSER")
+        client2=http.client.HTTPConnection(self.serveradressHome,port=self.PortHome)
+        client2.request(method="FINDUSER",body=UserID_bob,url="")
+        exists2="0"
+        try:
+            #this is a foolish work around but ive got no idea how to solve this else
+            #https://stackoverflow.com/questions/4308182/getting-the-exception-value-in-python
+            #https://stackoverflow.com/questions/27619258/httplib-badstatusline
+            #the reason for this error arriving is that i might not adapt to http standard accordnig to forums, source
+            instance=client2.getresponse()
+            instance.read()
+        except http.client.BadStatusLine as exists:
+            exists2=str(exists)
+            
+        exists3=bool(int(exists2))
+        return exists3
+            
         
-
 class virtstaticip:
     #this class handles pull task(s) for maintaining a virtual static ip
     #the ip of my home server is not static,
@@ -935,6 +996,10 @@ keys=Crypto_method.Keys("rsa")
 chiffre=Crypto_method.Encrypt("rsa",message,keys[0])
 decryp=Crypto_method.Decrypt("rsa",chiffre,keys[1])
 print(decryp)
+
+
+j=ioserver("188.23.146.121","8000")
+print(j.finduser("Mustermann"))
 #print(hex(int(Crypto_method.Assign_number("Some normal length of a message- i might must compress this fomat somehow"))))
 #d=Decrypt(mysterytext)
 #readblmess=d.RSA(mykeys[1])

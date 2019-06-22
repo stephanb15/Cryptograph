@@ -24,6 +24,7 @@ import http.server
 import socketserver
 import os
 import json
+import sys
 
 PORT = 8000
 
@@ -82,6 +83,19 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         filepath= sender+".json"
         outfile=open(filepath, 'w')
         json.dump(extndData,outfile)
+    
+    def do_FINDUSER(self):
+        length = int(self.headers['Content-Length'])
+        bindata=self.rfile.read(length)
+        data=str(bindata,encoding='utf8')
+        sender=data
+        filepath= sender+".json"
+        boolval=os.path.isfile(filepath)
+        data=bytes(str(int(boolval)),encoding='utf8')
+        self.send_response(200)
+        #self.send_header("Method FINDUSER","send")
+        self.end_headers
+        self.wfile.write(data)
         
 Handler =  MyHTTPRequestHandler
 
