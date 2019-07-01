@@ -12,6 +12,8 @@ a11713253@unet.univie.ac.at
 Stephan Bornberg
 a01506156@unet.univie.ac.at
 
+***
+
 **Cryptograph** is the name for a messenger-application which we (the author team) intended to build for testing some Cryptographic algorithms. These underlying algorithms were implemented by us.  Whereby we must mention, that they are based on some Mathematical textbooks (we took the Definitions of RSA, etc. from there).
 
 ***
