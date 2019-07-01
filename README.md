@@ -1,6 +1,7 @@
-# Cryptograph
 
-Project-Team:
+![](https://github.com/stephanb15/Cryptograph/blob/master/Icons/icon2.gif)
+
+## Project-Team:
 
 Jakob Lanser
 a11806538@unet.univie.ac.at
@@ -10,11 +11,6 @@ a11713253@unet.univie.ac.at
 
 Stephan Bornberg
 a01506156@unet.univie.ac.at
-
-
-Project-Description:
-
-![](https://github.com/stephanb15/Cryptograph/blob/master/Icons/icon2.gif)
 
 **Cryptograph** is the name for a messenger-application which we (the author team) intended to build for testing some Cryptographic algorithms. These underlying algorithms were implemented by us.  Whereby we must mention, that they are based on some Mathematical textbooks (we took the Definitions of RSA, etc. from there).
 
