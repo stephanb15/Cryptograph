@@ -35,7 +35,7 @@ class USRdata():
         USRdata.mkdir(path_bob)
     
     
-    def storeMessages(UserID_alice,UserID_bob,message,datetime):
+    def storeMessage(UserID_alice,UserID_bob,message,datetime):
         #messages must be an array of strings of format:
         #str(datetime.datetime.now())+" "+message
         USRdata.createFilestru(UserID_alice,UserID_bob)
@@ -43,14 +43,16 @@ class USRdata():
         path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob,"messages.txt")
         write=open(path_bob, 'a')
         write.write(datetime+" "+message)
+        write.close()
     
     def store_lastTime(UserID_alice,UserID_bob,datetime):
         #so in order to now the last recwived Message-Time of Bob
         path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob,"lastTime.txt")
         write=open(path_bob, 'w')
         write.write(datetime)
+        write.close()
         
-    def extract_lastTime(UserID_alice,UserID_bob,line):
+    def extract_lastTime(UserID_alice,UserID_bob):
         path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob,"lastTime.txt")
         read=open(path_bob, 'r')
         lastTime=read.readlines()
@@ -143,7 +145,6 @@ class GUI:
             #print chat history
             
             #1.st load chathistory, dated while client was offline from the server
-            # -take the last entry of bob's file
             
             #2.nd load message_buffer
             #3.rd input_make_bob these messages
@@ -213,7 +214,7 @@ class GUI:
         self.iot.insert(tk.END,message_print)
         self.chat_buffer[UserID_bob].append([nowtimedate,message_print])
         self.input_send(message,UserID_alice,UserID_bob,nowtimedate)
-        USRdata.storeMessages(UserID_alice,UserID_bob,message_store,nowtimedate)
+        USRdata.storeMessage(UserID_alice,UserID_bob,message_store,nowtimedate)
     
     def input_make_bob(self,message,UserID_alice,UserID_bob,datetime):
         #prints the message "message" from User "UserID_bob" to the gui
@@ -221,11 +222,14 @@ class GUI:
         message_store=UserID_bob +">> "+message
         
         self.chat_buffer[UserID_bob].append([datetime,message_print])
-        USRdata.storeMessages(UserID_alice,UserID_bob,message_store,datetime)
+        USRdata.storeMessage(UserID_alice,UserID_bob,message_store,datetime)
         #it should just printout the message, if its one of the courrent chat partner 
         #(the current Listbox entry)
         if self.UserID_Bob==UserID_bob:
             self.iot.insert(tk.END,message_print)
+            
+        #finally store the time of the last server extraction from bob
+        USRdata.store_lastTime(UserID_alice,UserID_bob,datetime)
         
     def input_send(self,message,UserID_alice,UserID_bob,nowtimedate):
         print(message)
