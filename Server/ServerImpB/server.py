@@ -34,15 +34,29 @@ web_dir = os.path.join(os.path.dirname(__file__), 'http')
 os.chdir(web_dir)
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    
+    def getdata(self):
+        length = int(self.headers['Content-Length'])
+        bindata=self.rfile.read(length)
+        data=str(bindata,encoding='utf8')
+        
+        return data
+    
+    def senddata(self, data):
+        self.send_response(200)
+        #self.send_header("Method FINDUSER","send")
+        self.end_headers
+        self.wfile.write(data)
+        
+        return data    
+    
     def do_POST(self):
         #Find a function which buffers the incomming data
         #Add a json function to add a new message to the requestet file
         #Maybe have a look here
         #https://stackoverflow.com/questions/33662842/simple-python-server-to-process-get-and-post-requests-with-json
         #https://stackoverflow.com/questions/17690585/how-do-i-access-the-data-sent-to-my-server-using-basehttprequesthandler
-        length = int(self.headers['Content-Length'])
-        bindata=self.rfile.read(length)
-        data=str(bindata,encoding='utf8')
+        data=self.getdata()
         pydict=json.loads(data)
         
         publickeys=pydict["publickeys"]
@@ -66,9 +80,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         json.dump(extndData,outfile)
         
     def do_POSTKEY(self):
-        length = int(self.headers['Content-Length'])
-        bindata=self.rfile.read(length)
-        data=str(bindata,encoding='utf8')
+        data=self.getdata()
         pydict=json.loads(data)
         publickeys=pydict["publickeys"]
         keyID_alice= pydict['keyID_alice']
@@ -85,17 +97,65 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         json.dump(extndData,outfile)
     
     def do_FINDUSER(self):
-        length = int(self.headers['Content-Length'])
-        bindata=self.rfile.read(length)
-        data=str(bindata,encoding='utf8')
-        sender=data
+        sender=self.getdata()
         filepath= sender+".json"
         boolval=os.path.isfile(filepath)
         data=bytes(str(int(boolval)),encoding='utf8')
-        self.send_response(200)
-        #self.send_header("Method FINDUSER","send")
-        self.end_headers
-        self.wfile.write(data)
+        
+        self.senddata(data)
+        
+    def do_CREATEACCOUNT(self):
+        data=self.getdata()
+        pydict=json.loads(data)
+        UserID_bob=pydict["UserID_bob"]
+        
+        filepath= UserID_bob +".json"
+        boolval=os.path.isfile(filepath)
+        
+        #I am afraid of, that the http server doesn't handle requests chronologically
+        #but instead parallel, so the following then could create an error:
+        #Say "A" likes to create an account and asks the server if the account
+        #does already exist. 
+        #If tbe server allows for parallel procession, someone "B" could in the meantime
+        #do the same request and cause potential errors for "A" if he can create the account 
+        #faster than "A".
+            
+        dict_py={"UserID" :UserID_bob,
+                    "message" : {
+                            UserID_bob: {
+                                    "28.05.2019":{
+                                            "keyID": "1",
+                                            "message": ""
+                                            }
+                                    }
+                                    },
+                    "mykey" : {  "keyID" : 1,
+                               "method" : "rsa",
+                               "publickey": "123423"
+                               }
+                    }
+        
+        
+        if boolval!=True:
+            outfile=open(filepath, 'w')
+            json.dump(dict_py,outfile)
+            
+        #send back 
+        data=bytes(str(int(boolval)),encoding='utf8')
+        self.senddata(data)
+        
+    def do_ADDCONTACT(self):
+        data=self.getdata()
+        pydict=json.loads(data)
+        UserID_bob=pydict["UserID_bob"]
+        UserID_alice=pydict["UserID_alice"]
+        
+        file=open(UserID_alice +'.json', 'r')
+        extndData=json.load(file)
+        extndData["message"][UserID_bob].update()
+        
+    def do_GETNEW(self):
+        ...
         
 Handler =  MyHTTPRequestHandler
 
