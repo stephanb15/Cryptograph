@@ -97,11 +97,14 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         json.dump(extndData,outfile)
     
     def do_FINDUSER(self):
-        sender=self.getdata()
+        data=self.getdata()
+        pydict=json.loads(data)
+        sender=pydict["UserID"]
         filepath= sender+".json"
         boolval=os.path.isfile(filepath)
-        data=bytes(str(int(boolval)),encoding='utf8')
         
+        jsond=json.dumps({"exists":boolval})
+        data=bytes(jsond,encoding='utf8')
         self.senddata(data)
         
     def do_CREATEACCOUNT(self):
@@ -141,7 +144,8 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             json.dump(dict_py,outfile)
             
         #send back 
-        data=bytes(str(int(boolval)),encoding='utf8')
+        jsond=json.dumps({"exists":boolval})
+        data=bytes(jsond,encoding='utf8')
         self.senddata(data)
         
     def do_ADDCONTACT(self):
@@ -149,13 +153,45 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         pydict=json.loads(data)
         UserID_bob=pydict["UserID_bob"]
         UserID_alice=pydict["UserID_alice"]
-        
-        file=open(UserID_alice +'.json', 'r')
+        filepath=UserID_alice +'.json'
+        file=open(filepath, 'r')
         extndData=json.load(file)
-        extndData["message"][UserID_bob].update()
+        file.close()
+        extndData["message"].update({ UserID_bob: {
+                                    "28.05.2019":{
+                                            "keyID": "1",
+                                            "message": ""
+                                            }
+                                    }})
+        outfile=open(filepath, 'w')
+        json.dump(extndData,outfile)
+        outfile.close()
         
-    def do_GETNEW(self):
-        ...
+        boolval=os.path.isfile(UserID_bob +'.json')
+        jsond=json.dumps({"exists":boolval})
+        data=bytes(jsond,encoding='utf8')
+        self.senddata(data)
+        
+    def do_GETMESSAGES(self):
+        data=self.getdata()
+        pydict=json.loads(data)
+        nowtimedate=pydict["timedate"]
+        UserID_bob=pydict["UserID_bob"]
+        UserID_alice=pydict["UserID_alice"]
+        
+        file=open(UserID_bob +'.json', 'r')
+        serverData=json.load(file)
+        keyset=set(serverData["message"][UserID_alice].keys())
+        #filter keys with border given by request
+        keys_trunc=[x for x in keyset if x > nowtimedate]
+        keys_trunc.sort()
+        message_trunc=[]
+        for i in range(len(keys_trunc)):
+            message_trunc.append([keys_trunc[i],serverData["message"][UserID_alice][keys_trunc[i]]])
+        pydict={"messages":message_trunc}
+        jsondict=json.dumps(pydict)
+        data=bytes(jsondict,encoding='utf8')
+        self.senddata(data)
         
 Handler =  MyHTTPRequestHandler
 

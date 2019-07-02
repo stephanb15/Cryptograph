@@ -136,22 +136,29 @@ class GUI:
         for i in range(len(list_UserIDs_bob)):
             self.server_content=self.j.pull(list_UserIDs_bob[i])
             #sieve messages dedicated to Alice 
-            self.oldset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
             
-            #initialise buffer by creating lists dedicated to UserID-keys
-            self.chat_buffer[list_UserIDs_bob[i]]=[]
-            
-            
-            #print chat history
-            
-            #1.st load chathistory, dated while client was offline from the server
-            
-            #2.nd load message_buffer
-            #3.rd input_make_bob these messages
-            
-            #get all contents (messages, contacts from server as initialised)
-            #maybe for performance create a synchronisation algorithms to
-            #save from big downloads, later
+            try:
+                #### THIS OMMITS; THAT UserID_alice exists in the directory of UserID_bob
+                #whih mustnt be the case, so en exception is need here
+                self.oldset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
+                
+                #initialise buffer by creating lists dedicated to UserID-keys
+                self.chat_buffer[list_UserIDs_bob[i]]=[]
+                
+                
+                #print chat history
+                
+                
+                #1.st load chathistory, dated while client was offline from the server
+                
+                #2.nd load message_buffer
+                #3.rd input_make_bob these messages
+                
+                #get all contents (messages, contacts from server as initialised)
+                #maybe for performance create a synchronisation algorithms to
+                #save from big downloads, later
+            except:
+                ...
         
         
     def chat_update(self,UserID_alice, list_UserIDs_bob):
@@ -164,32 +171,34 @@ class GUI:
         
         #essential, as otherwise messanges no messages would income
         for i in range(len(list_UserIDs_bob)):
-            self.server_content=self.j.pull(list_UserIDs_bob[i]) ######## CHANGE PLAIN TO GENERAL USERID
-            
-            self.newset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
-            #print(self.newset)
-            difference=self.newset[list_UserIDs_bob[i]]-self.oldset[list_UserIDs_bob[i]]
-            self.oldset[list_UserIDs_bob[i]]=self.newset[list_UserIDs_bob[i]]
-            
-            #order the differnce-set by date and print out the dedicated messages
-            #, so the dictionary[key] where key is element of set, "difference"
-            difference=sorted(list(difference))
-            # sorting is necessary, so the date-time of the message is sorted
-            #sorting creates a list with first old messages - then new messages
-            #print(difference)
-            
-            #print these messages in the gui
-            for ii in range(len(difference)):
-                message_chiffre=self.server_content["message"][UserID_alice][difference[ii]]["message"]
-                message_privkey=self.key_alice[1]
-                print("chiffre", message_chiffre)
-                #Decrypt message
+            try:
+                self.server_content=self.j.pull(list_UserIDs_bob[i]) ######## CHANGE PLAIN TO GENERAL USERID
                 
-                message_decryp=Crypto_method.Decrypt("rsa",message_chiffre,message_privkey)
+                self.newset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
+                #print(self.newset)
+                difference=self.newset[list_UserIDs_bob[i]]-self.oldset[list_UserIDs_bob[i]]
+                self.oldset[list_UserIDs_bob[i]]=self.newset[list_UserIDs_bob[i]]
                 
-                #print(message)
-                self.input_make_bob(message_decryp,UserID_alice,list_UserIDs_bob[i],difference[ii])
+                #order the differnce-set by date and print out the dedicated messages
+                #, so the dictionary[key] where key is element of set, "difference"
+                difference=sorted(list(difference))
+                # sorting is necessary, so the date-time of the message is sorted
+                #sorting creates a list with first old messages - then new messages
+                #print(difference)
                 
+                #print these messages in the gui
+                for ii in range(len(difference)):
+                    message_chiffre=self.server_content["message"][UserID_alice][difference[ii]]["message"]
+                    message_privkey=self.key_alice[1]
+                    print("chiffre", message_chiffre)
+                    #Decrypt message
+                    
+                    message_decryp=Crypto_method.Decrypt("rsa",message_chiffre,message_privkey)
+                    
+                    #print(message)
+                    self.input_make_bob(message_decryp,UserID_alice,list_UserIDs_bob[i],difference[ii])
+            except:
+                ...
         
         #Write a function to print the messages in specific window- not all of them in the same
         
@@ -373,8 +382,9 @@ class GUI:
         UserID_bob=self.login_usrname.get()
         dict_py={"UserID_bob": UserID_bob}
         dict_js=json.dumps(dict_py)
-        exists=self.j.useroperation(UserID_bob, "FINDUSER")
-        print(exists)
+        exists=self.j.useroperation(json.dumps({"UserID":UserID_bob}), "FINDUSER")
+        exists=exists["exists"]
+        #print(exists)
         if exists==False:
             #create an "account" - so a .json file on the server side
             self.j.useroperation(dict_js,"CREATEACCOUNT")
@@ -645,8 +655,17 @@ class GUI:
         
     def men_addcontact_server(self,UserID_bob):
         #write serverrequest to add user to account (.json file)
-        ...
         
+        data1=json.dumps({"UserID":UserID_bob})
+        exists=self.j.useroperation(data1,"FINDUSER")["exists"]
+        
+        if exists==True:
+            data2=json.dumps({"UserID_bob":UserID_bob,"UserID_alice": self.UserID_Alice})
+            self.j.useroperation(data2,"ADDCONTACT")
+            
+            #update chatlist
+            self.lst.insert(tk.END,UserID_bob)
+
     
     def men_serverconf(self):
         men=tk.Tk()
@@ -757,11 +776,11 @@ class ioserver:
             #this is a dirty solution
             print("Server Communication Error")
         
-    def useroperation(self,UserID_bob,method):
+    def useroperation(self,data,method):
         #pushed = urllib.request.Request(url=pathHome, data=data,method="FINDUSER")
         client2=http.client.HTTPConnection(self.serveradressHome,port=self.PortHome)
-        client2.request(method=method,body=UserID_bob,url="")
-        exists2="0"
+        client2.request(method=method,body=data,url="")
+        exists2={"1":"1"} #initialice
         try:
             #this is a foolish work around but ive got no idea how to solve this else
             #https://stackoverflow.com/questions/4308182/getting-the-exception-value-in-python
@@ -770,9 +789,8 @@ class ioserver:
             instance=client2.getresponse()
             instance.read()
         except http.client.BadStatusLine as exists:
-            exists2=str(exists)
-        exists3=bool(int(exists2))
-        return exists3
+            exists2=json.loads(str(exists))
+        return exists2
     
 class virtstaticip:
     #this class handles pull task(s) for maintaining a virtual static ip
@@ -934,7 +952,7 @@ print(decryp)
 
 
 j=ioserver("178.191.88.79","8000")
-print(j.useroperation("Mustermann","FINDUSER"))
+print(j.useroperation(json.dumps({"UserID":"Mustermann"}),"FINDUSER"))
 
 #print(hex(int(Crypto_method.Assign_number("Some normal length of a message- i might must compress this fomat somehow"))))
 #d=Decrypt(mysterytext)
