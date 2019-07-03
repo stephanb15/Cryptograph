@@ -19,48 +19,59 @@ class USRdata():
     #like decrypted Messages etc
     wrkdir = os.path.dirname(__file__)
     
+    dir_bob=lambda UserID_alice, UserID_bob, file : os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob, file)
+    
     def mkdir(path):
         #https://thispointer.com/how-to-create-a-directory-in-python/
         if not os.path.exists(path):
             os.mkdir(path)
     
-    def mfile(path):
+    def mfile(path,message):
         if not os.path.isfile(path):
-            open(path, 'w').close()
+            write=open(path, 'w')
+            write.write(message)
+            write.close()
     
     def createFilestru(UserID_alice, UserID_bob):
+        
+        #directories
         path_alice=os.path.join(USRdata.wrkdir,"usr",UserID_alice)
         USRdata.mkdir(path_alice)
         path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob)
         USRdata.mkdir(path_bob)
-    
-    
-    def storeMessage(UserID_alice,UserID_bob,message,datetime):
+        
+        #files in directories
+        path_bob_mes=USRdata.dir_bob(UserID_alice,UserID_bob,"messages.txt")
+        USRdata.mfile(path_bob_mes,"1999-07-03 1"+" "+"Cryptograph>>> -Welcome to Cryptograph-")
+        path_bob_time=USRdata.dir_bob(UserID_alice,UserID_bob,"lastTime.txt")
+        USRdata.mfile(path_bob_time,"1999-07-03")
+        
+    def store_Message(UserID_alice,UserID_bob,message,datetime):
         #messages must be an array of strings of format:
         #str(datetime.datetime.now())+" "+message
         USRdata.createFilestru(UserID_alice,UserID_bob)
         
-        path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob,"messages.txt")
+        path_bob=USRdata.dir_bob(UserID_alice, UserID_bob,"messages.txt")
         write=open(path_bob, 'a')
         write.write(datetime+" "+message)
         write.close()
     
     def store_lastTime(UserID_alice,UserID_bob,datetime):
         #so in order to now the last recwived Message-Time of Bob
-        path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob,"lastTime.txt")
+        path_bob=USRdata.dir_bob(UserID_alice, UserID_bob,"lastTime.txt")
         write=open(path_bob, 'w')
         write.write(datetime)
         write.close()
         
     def extract_lastTime(UserID_alice,UserID_bob):
-        path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob,"lastTime.txt")
+        path_bob=USRdata.dir_bob(UserID_alice, UserID_bob,"lastTime.txt")
         read=open(path_bob, 'r')
-        lastTime=read.readlines()
+        lastTime=read.readlines()[0]
         read.close()
         return lastTime
         
     def extract_allMessage(UserID_alice,UserID_bob):
-        path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob,"messages.txt")
+        path_bob=USRdata.dir_bob(UserID_alice, UserID_bob,"messages.txt")
         read=open(path_bob, 'r')
         buffer=read.readlines()
         buffer2=[]
@@ -125,22 +136,25 @@ class GUI:
         self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
         UserID_alice=self.UserID_Alice
         data={'senderID': UserID_alice,'publickeys': self.key_alice[0], 'keyID_alice': keyID_alice, "method": method_alice}
-        print(data)
+        #print(data)
         self.j.push(UserID_alice,data,"POSTKEY")
         
         
         
     def chat_update_init(self, UserID_alice,list_UserIDs_bob):
         
+        
         #get all server contents from Bob
         for i in range(len(list_UserIDs_bob)):
-            self.server_content=self.j.pull(list_UserIDs_bob[i])
+            #self.server_content=self.j.pull(list_UserIDs_bob[i])
+            USRdata.createFilestru(UserID_alice,list_UserIDs_bob[i])
+            self.server_content=self.j.useroperation(json.dumps({"UserID_bob":list_UserIDs_bob[i],"UserID_alice":UserID_alice, "timedate":'2019-07-03 17:19:23.164112'}),"GETMESSAGES")["messages"]
+            #print(self.server_content)
             #sieve messages dedicated to Alice 
             
             try:
                 #### THIS OMMITS; THAT UserID_alice exists in the directory of UserID_bob
                 #whih mustnt be the case, so en exception is need here
-                self.oldset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
                 
                 #initialise buffer by creating lists dedicated to UserID-keys
                 self.chat_buffer[list_UserIDs_bob[i]]=[]
@@ -162,7 +176,7 @@ class GUI:
         
         
     def chat_update(self,UserID_alice, list_UserIDs_bob):
-        print(self.chat_buffer)
+        #print(self.chat_buffer)
         #write a function creating a list contaning all messenge keys "
         # i.e "2019-05-29 18:30:59.099567" 
         #after every server_update compare those lists
@@ -171,34 +185,28 @@ class GUI:
         
         #essential, as otherwise messanges no messages would income
         for i in range(len(list_UserIDs_bob)):
-            try:
-                self.server_content=self.j.pull(list_UserIDs_bob[i]) ######## CHANGE PLAIN TO GENERAL USERID
+            #try:
                 
-                self.newset[list_UserIDs_bob[i]]=set(self.server_content["message"][UserID_alice].keys())
-                #print(self.newset)
-                difference=self.newset[list_UserIDs_bob[i]]-self.oldset[list_UserIDs_bob[i]]
-                self.oldset[list_UserIDs_bob[i]]=self.newset[list_UserIDs_bob[i]]
                 
-                #order the differnce-set by date and print out the dedicated messages
-                #, so the dictionary[key] where key is element of set, "difference"
-                difference=sorted(list(difference))
-                # sorting is necessary, so the date-time of the message is sorted
-                #sorting creates a list with first old messages - then new messages
-                #print(difference)
+            lastTime=USRdata.extract_lastTime(UserID_alice,list_UserIDs_bob[i])
+            print(lastTime)
+            content=self.j.useroperation(json.dumps({"UserID_bob":list_UserIDs_bob[i],"UserID_alice":UserID_alice, "timedate":lastTime}),"GETMESSAGES")["messages"]
+
+            #print these messages in the gui
+            for ii in range(len(content)):
+                message_chiffre=content[ii][1]
+                message_time=content[ii][0]
                 
-                #print these messages in the gui
-                for ii in range(len(difference)):
-                    message_chiffre=self.server_content["message"][UserID_alice][difference[ii]]["message"]
-                    message_privkey=self.key_alice[1]
-                    print("chiffre", message_chiffre)
-                    #Decrypt message
-                    
-                    message_decryp=Crypto_method.Decrypt("rsa",message_chiffre,message_privkey)
-                    
-                    #print(message)
-                    self.input_make_bob(message_decryp,UserID_alice,list_UserIDs_bob[i],difference[ii])
-            except:
-                ...
+                message_privkey=self.key_alice[1]
+                #print("chiffre", message_chiffre)
+                #Decrypt message
+                
+                message_decryp=Crypto_method.Decrypt("rsa",message_chiffre,message_privkey)
+                
+                #print(message)
+                self.input_make_bob(message_decryp,message_time,UserID_alice,list_UserIDs_bob[i])
+            #except:
+            #    ...
         
         #Write a function to print the messages in specific window- not all of them in the same
         
@@ -223,25 +231,26 @@ class GUI:
         self.iot.insert(tk.END,message_print)
         self.chat_buffer[UserID_bob].append([nowtimedate,message_print])
         self.input_send(message,UserID_alice,UserID_bob,nowtimedate)
-        USRdata.storeMessage(UserID_alice,UserID_bob,message_store,nowtimedate)
+        USRdata.store_Message(UserID_alice,UserID_bob,message_store,nowtimedate)
     
-    def input_make_bob(self,message,UserID_alice,UserID_bob,datetime):
+    def input_make_bob(self,message,message_time,UserID_alice,UserID_bob):
         #prints the message "message" from User "UserID_bob" to the gui
         message_print='\n'+ UserID_bob +">> "+message
+        print("message", message)
         message_store=UserID_bob +">> "+message
         
-        self.chat_buffer[UserID_bob].append([datetime,message_print])
-        USRdata.storeMessage(UserID_alice,UserID_bob,message_store,datetime)
+        self.chat_buffer[UserID_bob].append([message_time,message_print])
+        USRdata.store_Message(UserID_alice,UserID_bob,message_store,message_time)
         #it should just printout the message, if its one of the courrent chat partner 
         #(the current Listbox entry)
         if self.UserID_Bob==UserID_bob:
             self.iot.insert(tk.END,message_print)
             
         #finally store the time of the last server extraction from bob
-        USRdata.store_lastTime(UserID_alice,UserID_bob,datetime)
+        USRdata.store_lastTime(UserID_alice,UserID_bob,message_time)
         
     def input_send(self,message,UserID_alice,UserID_bob,nowtimedate):
-        print(message)
+        #print(message)
         
         #for now keyID is constant later there should be a local database of keys created earilier in time
         # so in order to be able to decrypt messages from earlier time
@@ -252,7 +261,7 @@ class GUI:
         #Integrating encryption here:
         #get key from bob
         server_content=self.j.pull(UserID_bob)
-        print(server_content)
+        #print(server_content)
         #maybe write a request-method in the MyHTTPRequestHandler in the server.py file, so in order to make this more efficient
         key_bob=server_content["mykey"]["publickey"]
         method_bob=server_content["mykey"]["method"]
@@ -420,11 +429,13 @@ class GUI:
         self.iot.delete('1.0', tk.END)
         
         #print buffered messages of user: User_ID_bob_curr
-        buffer=self.chat_buffer[UserID_bob_curr]
-        if buffer !=[]:
-            for i in range(len(buffer)):
-                self.iot.insert(tk.END,buffer[i][1])
-            
+        try:
+            buffer=self.chat_buffer[UserID_bob_curr]
+            if buffer !=[]:
+                for i in range(len(buffer)):
+                    self.iot.insert(tk.END,buffer[i][1])
+        except:
+            ...
         
         #Set self.UserID_Bob
         self.UserID_Bob=UserID_bob_curr
@@ -774,7 +785,8 @@ class ioserver:
             #"raise RemoteDisconnected("Remote end closed connection withou"
             #aldough writing to the server now works without a client error 
             #this is a dirty solution
-            print("Server Communication Error")
+            #print("Server Communication Error")
+            ...
         
     def useroperation(self,data,method):
         #pushed = urllib.request.Request(url=pathHome, data=data,method="FINDUSER")
@@ -790,6 +802,7 @@ class ioserver:
             instance.read()
         except http.client.BadStatusLine as exists:
             exists2=json.loads(str(exists))
+            print("exists2: ",exists2)
         return exists2
     
 class virtstaticip:
@@ -873,7 +886,7 @@ class Crypto_method:
         
         if method_str== "rsa":
             message_numb=Crypto_method.Assign_number(message_str)
-            print("mes", message_numb)
+            #print("mes", message_numb)
             chiffre=RSA.Encrypt_large(message_numb, pubkey, 24) #the length 19 should be made variable in the future
         else:
             #if the method is incorrect/ not given, there will be an identity en/decryption-
@@ -899,7 +912,7 @@ class OAEP:
     def Keys():
         #there is only one private key
         k0=20
-        print(os.urandom(k0))
+        #print(os.urandom(k0))
 
 ##############################################################################
 #                             Main
@@ -953,6 +966,8 @@ print(decryp)
 
 j=ioserver("178.191.88.79","8000")
 print(j.useroperation(json.dumps({"UserID":"Mustermann"}),"FINDUSER"))
+print(j.useroperation(json.dumps({"UserID_bob":"mustermann","UserID_alice":"stephanb15", "timedate":'2019-07-03 17:19:23.164112'}),"GETMESSAGES"))
+
 
 #print(hex(int(Crypto_method.Assign_number("Some normal length of a message- i might must compress this fomat somehow"))))
 #d=Decrypt(mysterytext)

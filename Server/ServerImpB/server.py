@@ -126,7 +126,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         dict_py={"UserID" :UserID_bob,
                     "message" : {
                             UserID_bob: {
-                                    "28.05.2019":{
+                                    "1999-07-03":{
                                             "keyID": "1",
                                             "message": ""
                                             }
@@ -158,7 +158,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         extndData=json.load(file)
         file.close()
         extndData["message"].update({ UserID_bob: {
-                                    "28.05.2019":{
+                                    "1999-07-03":{
                                             "keyID": "1",
                                             "message": ""
                                             }
@@ -187,7 +187,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         keys_trunc.sort()
         message_trunc=[]
         for i in range(len(keys_trunc)):
-            message_trunc.append([keys_trunc[i],serverData["message"][UserID_alice][keys_trunc[i]]])
+            message_trunc.append([keys_trunc[i],serverData["message"][UserID_alice][keys_trunc[i]]["message"]])
         pydict={"messages":message_trunc}
         jsondict=json.dumps(pydict)
         data=bytes(jsondict,encoding='utf8')
