@@ -1,27 +1,75 @@
-1999-07-03 1 Cryptograph>>> -Welcome to Cryptograph-2019-07-03 17:50:02.066539 stephanb15>> aef
+1999-07-03 1 Cryptograph>> -Welcome to Cryptograph-
+2019-07-03 17:50:02.066539 stephanb15>> aef
+
 2019-07-03 17:50:43.234790 stephanb15>> srg
+
 2019-07-03 21:59:07.441527 stephanb15>> srgkm
+
 2019-07-03 22:16:45.992339 stephanb15>> aef
+
 2019-07-03 22:35:47.631568 stephanb15>> wrg
+
 2019-07-03 22:36:24.029809 stephanb15>> ef
+
 2019-07-03 22:36:35.297365 stephanb15>> asdfwerg
+
 2019-07-03 22:38:09.643579 stephanb15>> wrw
+
 2019-07-03 22:38:16.127106 stephanb15>> wergwerg
+
 2019-07-03 22:42:15.242190 stephanb15>> ae
+
 2019-07-03 22:45:01.701350 stephanb15>> aef
+
 2019-07-03 22:50:53.253937 stephanb15>> werwref
+
 2019-07-03 22:52:48.645915 stephanb15>> üoj
-2019-07-03 23:16:35.274428 mustermann>> wfwefwreg
-2019-07-03 23:16:36.492009 mustermann>> 
+
 2019-07-03 23:17:00.161966 stephanb15>> argawrg
-2019-07-03 23:19:24.610071 mustermann>> ergtergwer
-2019-07-03 23:19:30.799844 mustermann>> ewgewrgefb
-2019-07-03 23:19:41.935883 mustermann>> wegwer
+
 2019-07-03 23:20:31.910043 stephanb15>> aef
+
 2019-07-03 23:20:52.159405 stephanb15>> piuvp
+
 2019-07-03 23:21:20.821993 stephanb15>> obljbökö
+
 2019-07-03 23:21:37.155702 stephanb15>> ökh ölj
-2019-07-03 23:22:00.199494 mustermann>> aef
-2019-07-03 23:22:04.230655 mustermann>> ergwergwer
-2019-07-03 23:22:15.379868 mustermann>> srgergsergs
+
 2019-07-03 23:22:19.399206 stephanb15>> srgserg
+
+2019-07-04 00:22:33.298595 stephanb15>> werogn
+
+2019-07-04 00:22:37.266801 stephanb15>> 3wüoigsdfv
+
+2019-07-04 00:22:40.804916 stephanb15>> wpfmwern
+
+2019-07-04 00:50:12.641933 stephanb15>> aefae
+
+2019-07-04 01:02:24.688525 stephanb15>> wgreäpkeg
+
+2019-07-04 01:02:26.933114 stephanb15>> ergwer
+
+2019-07-04 01:02:29.081170 stephanb15>> wergsf
+
+2019-07-04 01:03:38.305683 stephanb15>> wef
+
+2019-07-04 01:03:41.553746 stephanb15>> wef
+
+2019-07-04 01:12:16.192003 stephanb15>> wergsdfgsetg
+
+2019-07-04 01:12:22.818140 stephanb15>> ergwergw
+
+2019-07-04 01:12:52.787774 mustermann>> Hey stephanb15, how are you
+
+2019-07-04 01:13:48.989505 stephanb15>> don't know, but just solved an major scnchronisation goal
+
+
+2019-07-04 01:14:12.099749 mustermann>> cool
+
+2019-07-04 01:14:30.104793 mustermann>> so what's next
+
+
+2019-07-04 01:15:33.574586 stephanb15>> creating a AI girlefriend to chat with me, good night 
+
+2019-07-04 01:16:10.992041 mustermann>> ;) night
+

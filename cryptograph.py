@@ -42,7 +42,7 @@ class USRdata():
         
         #files in directories
         path_bob_mes=USRdata.dir_bob(UserID_alice,UserID_bob,"messages.txt")
-        USRdata.mfile(path_bob_mes,"1999-07-03 1"+" "+"Cryptograph>>> -Welcome to Cryptograph-")
+        USRdata.mfile(path_bob_mes,"1999-07-03 1"+" "+"Cryptograph"+">> "+"-Welcome to Cryptograph-"+'\n')
         path_bob_time=USRdata.dir_bob(UserID_alice,UserID_bob,"lastTime.txt")
         USRdata.mfile(path_bob_time,"1999-07-03")
         
@@ -76,8 +76,10 @@ class USRdata():
         buffer=read.readlines()
         buffer2=[]
         for i in range(len(buffer)):
-            buffer2.append(buffer.split(" ",2))
-            
+            linelist=buffer[i].split(" ",2)
+            if len(linelist)==3:
+                linelist2=[linelist[0]+linelist[1],linelist[2]+"\n"]
+                buffer2.append(linelist2)
         read.close()
         
         return buffer2
@@ -152,28 +154,36 @@ class GUI:
             #print(self.server_content)
             #sieve messages dedicated to Alice 
             
+            mess_list=USRdata.extract_allMessage(UserID_alice,list_UserIDs_bob[i])
+            
             try:
                 #### THIS OMMITS; THAT UserID_alice exists in the directory of UserID_bob
                 #whih mustnt be the case, so en exception is need here
                 
                 #initialise buffer by creating lists dedicated to UserID-keys
                 self.chat_buffer[list_UserIDs_bob[i]]=[]
-                
-                
-                #print chat history
-                
-                
-                #1.st load chathistory, dated while client was offline from the server
-                
-                #2.nd load message_buffer
-                #3.rd input_make_bob these messages
-                
-                #get all contents (messages, contacts from server as initialised)
-                #maybe for performance create a synchronisation algorithms to
-                #save from big downloads, later
+                self.chat_buffer[list_UserIDs_bob[i]].extend(mess_list)
             except:
                 ...
+                
+            
+            if self.UserID_Bob==list_UserIDs_bob[i]:
+                for ii in range(len(mess_list)):
+                    self.iot.insert(tk.END,mess_list[ii][1])
+            
+            #print chat history
+            
+            
+            #1.st load chathistory, dated while client was offline from the server
+            
+            #2.nd load message_buffer
+            #3.rd input_make_bob these messages
+            
+            #get all contents (messages, contacts from server as initialised)
+            #maybe for performance create a synchronisation algorithms to
+            #save from big downloads, later
         
+    
         
     def chat_update(self,UserID_alice, list_UserIDs_bob):
         #print(self.chat_buffer)
@@ -224,23 +234,22 @@ class GUI:
     def input_make_alice(self,message,UserID_alice,UserID_bob):
         #prints the message "message" from User "namevar" to the gui
         #if send==True the message is printed to the server
-        message_print='\n'+UserID_alice+">> "+message
-        message_store=UserID_alice +">> "+message
+        message_print=UserID_alice+">> "+message+'\n'
+        
         nowtimedate=str(datetime.datetime.now())
         
         self.iot.insert(tk.END,message_print)
         self.chat_buffer[UserID_bob].append([nowtimedate,message_print])
         self.input_send(message,UserID_alice,UserID_bob,nowtimedate)
-        USRdata.store_Message(UserID_alice,UserID_bob,message_store,nowtimedate)
+        USRdata.store_Message(UserID_alice,UserID_bob,message_print,nowtimedate)
     
     def input_make_bob(self,message,message_time,UserID_alice,UserID_bob):
         #prints the message "message" from User "UserID_bob" to the gui
-        message_print='\n'+ UserID_bob +">> "+message
+        message_print=UserID_bob +">> "+message+'\n'
         print("message", message)
-        message_store=UserID_bob +">> "+message
         
         self.chat_buffer[UserID_bob].append([message_time,message_print])
-        USRdata.store_Message(UserID_alice,UserID_bob,message_store,message_time)
+        USRdata.store_Message(UserID_alice,UserID_bob,message_print,message_time)
         #it should just printout the message, if its one of the courrent chat partner 
         #(the current Listbox entry)
         if self.UserID_Bob==UserID_bob:
@@ -446,12 +455,10 @@ class GUI:
         #list of contacts of user
         self.contacts=list(self.j.pull(self.UserID_Alice)["message"].keys())
         
-        #initialise chat - get from server
-        self.chat_update_init(self.UserID_Alice,self.contacts)
-        
         #initialise self.UserID_Bob - the current communication partner
         self.UserID_Bob=self.contacts[0]
         #so there must be at least one existing partner
+        
         
         #----------------------------------------------------------------------
         #GUI
@@ -572,6 +579,13 @@ class GUI:
         
         self.home_subpaned.add(self.home_subframe2_1,sticky="nsew",stretch="always")
         self.home_subpaned.add(self.home_subframe2_2,sticky="nsew")
+        
+        #----------------------------------------------------------------------
+        #Chat Update
+        #----------------------------------------------------------------------
+        
+        #initialise chat - get from server
+        self.chat_update_init(self.UserID_Alice,self.contacts)
         
         self.chat_update(self.UserID_Alice,self.contacts)
                 

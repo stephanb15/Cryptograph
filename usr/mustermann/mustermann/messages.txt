@@ -1,9 +1,13 @@
-1999-07-03 1 Cryptograph>>> -Welcome to Cryptograph-2019-07-03 17:49:25.263692 mustermann>> aef
+1999-07-03 1 Cryptograph>> -Welcome to Cryptograph-
+2019-07-03 17:49:25.263692 mustermann>> aef
+
 2019-07-03 17:49:32.229767 mustermann>> aef
+
 2019-07-03 17:50:31.880187 mustermann>> srg
+
 2019-07-03 23:19:17.320804 mustermann>> wergwerg
-2019-07-03 23:19:17.320804 mustermann>> wergwerg
+
 2019-07-03 23:19:51.477301 mustermann>> trgertg
-2019-07-03 23:19:51.477301 mustermann>> trgertg
+
 2019-07-03 23:22:09.104393 mustermann>> werg
-2019-07-03 23:22:09.104393 mustermann>> werg
+
