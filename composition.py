@@ -1,6 +1,8 @@
 import numpy as np
 import random
 from math import ceil
+import tkinter as tk
+from tkinter import messagebox
 
 class Transposition:
     
@@ -41,8 +43,7 @@ class Transposition:
         
         if len(message) != rows*columns:
             
-            inaccurate_List = [i for i in range(columns*rows - len(message))]
-            accurate_List = [(rows - i)*columns-1 for i in inaccurate_List]
+            accurate_List = [((rows - i) * columns - 1) % (rows * columns) for i in range(columns*rows - len(message))]
             accurate_List.reverse()
             
             for i in accurate_List:
@@ -99,30 +100,60 @@ class Substitution:
             decryptedMessage += c
         return decryptedMessage
     
-def questionnaire():
+def command(sub,trans,plain):
     
-    sub = input("Wieviele Substitutionschiffren sollen erstellt werden?")
-    trans = input("Wieviele Translationschiffren sollen erstellt werden?")
-    plain = input("Welcher Text soll verschlüsselt werden?\nBitte nur Buchstaben des neuen englischen Alphabets eingeben!")
+    allowed = [".",",","!","?"," "]
+    for x in range(65,91):
+        allowed.append(chr(x))
+    for x in range(97,123):
+        allowed.append(chr(x))  
     
-    return [sub,trans,plain]
+    for c in plain:
+        if c not in allowed:
+            messagebox.showwarning("Achtung", "Datei enthält unbekannte Zeichen!\nEingabevorschrift beachten!")
+            break
+        
+    sublist = [Substitution() for x in range(int(sub))]
+    translist = [Transposition() for x in range(int(trans))]
+    composition = list(set(sublist) | set(translist))
+    ciphertext = plain
 
-sub,trans,plain = questionnaire()
+    random.shuffle(composition)
 
-sublist = [Substitution() for x in range(int(sub))]
-translist = [Transposition() for x in range(int(trans))]
-composition = list(set(sublist) | set(translist))
+    for obj in composition:
+        ciphertext = obj.encrypt_Message(ciphertext)
 
-random.shuffle(composition)
+    composition = composition[::-1]
 
-for obj in composition:
-    plain = obj.encrypt_Message(plain)
-print(plain)
+    plaintext = ciphertext
 
-composition = composition[::-1]
+    for obj in composition:
+        plaintext = obj.decrypt_Message(plaintext)
 
-for obj in composition:
-    plain = obj.decrypt_Message(plain)
-print(plain)
+    output_Window = tk.Tk() 
+    label = tk.Label(output_Window, text = "Verschlüsselte Nachricht : " + str(ciphertext) + "\nEntschlüsselte Nachtricht : " + str(plaintext))
+    label.grid(row = 0, column = 0) 
+    output_Window.mainloop()    
 
-#passt
+input_Window = tk.Tk()
+input_Window.title("Composition")
+
+blabel = tk.Label(input_Window, text = "Wieviele Substitutionschiffren sollen erstellt werden?")
+blabel.grid(row = 0, column = 0)
+sub = tk.Entry(input_Window)
+sub.grid(row = 0, column = 1)
+    
+blabel = tk.Label(input_Window, text = "Wieviele Translationschiffren sollen erstellt werden?")
+blabel.grid(row = 1, column = 0)
+trans = tk.Entry(input_Window)
+trans.grid(row = 1, column = 1)
+    
+blabel = tk.Label(input_Window, text = "Welcher Text soll verschlüsselt werden?\nBitte nur Buchstaben des neues englischen Alphabets eingeben!")
+blabel.grid(row = 2, column = 0)
+plain = tk.Entry(input_Window)
+plain.grid(row = 2, column = 1)
+
+button = tk.Button(input_Window, text =  "Verschlüsseln", command = lambda : command(sub.get(), trans.get(), plain.get()))
+button.grid(row = 3,columnspan = 2)
+
+input_Window.mainloop()
