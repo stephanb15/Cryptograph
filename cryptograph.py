@@ -103,7 +103,11 @@ class GUImatrix:
 class GUI:
     def __init__(self):
         
+        #server ip adress and port
         self.j=ioserver("178.191.88.79","8000")
+        
+        #initial mehtod 
+        self.crypto_method="rsa"
         
         #font for headings:
         self.bg="grey70"#"cadet blue"
@@ -134,14 +138,18 @@ class GUI:
         
         #create a new public key for alice
         keyID_alice=1
-        method_alice="rsa"
+        method_alice=self.crypto_method
         self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
         UserID_alice=self.UserID_Alice
         data={'senderID': UserID_alice,'publickeys': self.key_alice[0], 'keyID_alice': keyID_alice, "method": method_alice}
         #print(data)
         self.j.push(UserID_alice,data,"POSTKEY")
         
-        
+    def bob_initialice(self,UserID_alice,UserID_bob):
+        USRdata.createFilestru(UserID_alice,UserID_bob)
+        if not(UserID_bob in self.chat_buffer):
+            self.chat_buffer[UserID_bob]=[]    
+            
         
     def chat_update_init(self, UserID_alice,list_UserIDs_bob):
         
@@ -149,23 +157,18 @@ class GUI:
         #get all server contents from Bob
         for i in range(len(list_UserIDs_bob)):
             #self.server_content=self.j.pull(list_UserIDs_bob[i])
-            USRdata.createFilestru(UserID_alice,list_UserIDs_bob[i])
-            self.server_content=self.j.useroperation(json.dumps({"UserID_bob":list_UserIDs_bob[i],"UserID_alice":UserID_alice, "timedate":'2019-07-03 17:19:23.164112'}),"GETMESSAGES")["messages"]
             #print(self.server_content)
             #sieve messages dedicated to Alice 
             
+            
+                
+            #initialise buffer by creating lists dedicated to UserID-keys
+            
+            self.bob_initialice(UserID_alice,list_UserIDs_bob[i])
             mess_list=USRdata.extract_allMessage(UserID_alice,list_UserIDs_bob[i])
             
-            try:
-                #### THIS OMMITS; THAT UserID_alice exists in the directory of UserID_bob
-                #whih mustnt be the case, so en exception is need here
-                
-                #initialise buffer by creating lists dedicated to UserID-keys
-                self.chat_buffer[list_UserIDs_bob[i]]=[]
-                self.chat_buffer[list_UserIDs_bob[i]].extend(mess_list)
-            except:
-                ...
-                
+            self.chat_buffer[list_UserIDs_bob[i]].extend(mess_list)
+            
             
             if self.UserID_Bob==list_UserIDs_bob[i]:
                 for ii in range(len(mess_list)):
@@ -196,12 +199,14 @@ class GUI:
         #essential, as otherwise messanges no messages would income
         for i in range(len(list_UserIDs_bob)):
             #try:
-                
-                
+            
+            self.bob_initialice(UserID_alice,list_UserIDs_bob[i])
+            
             lastTime=USRdata.extract_lastTime(UserID_alice,list_UserIDs_bob[i])
             print(lastTime)
             content=self.j.useroperation(json.dumps({"UserID_bob":list_UserIDs_bob[i],"UserID_alice":UserID_alice, "timedate":lastTime}),"GETMESSAGES")["messages"]
-
+            
+            
             #print these messages in the gui
             for ii in range(len(content)):
                 message_chiffre=content[ii][1]
@@ -211,7 +216,10 @@ class GUI:
                 #print("chiffre", message_chiffre)
                 #Decrypt message
                 
-                message_decryp=Crypto_method.Decrypt("rsa",message_chiffre,message_privkey)
+                #get decryotion mehtod from bob
+                crypto_method_bob="rsa"
+                
+                message_decryp=Crypto_method.Decrypt(crypto_method_bob,message_chiffre,message_privkey)
                 
                 #print(message)
                 self.input_make_bob(message_decryp,message_time,UserID_alice,list_UserIDs_bob[i])
@@ -278,7 +286,7 @@ class GUI:
         message_chiffre=Crypto_method.Encrypt(method_bob,message,key_bob)
         
         #create a new public key for alice
-        method_alice="rsa"
+        method_alice=self.crypto_method
         self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
         
         
@@ -517,9 +525,8 @@ class GUI:
         #https://stackoverflow.com/questions/16215045/typeerror-lambda-takes-no-arguments-1-given
         
         self.lst.grid(row=1,column=1,sticky="nsew")
-        #get json file contacts and insert contents here: example:
-        for x in range(len(self.contacts)):
-            self.lst.insert(tk.END,self.contacts[x])
+        
+        self.contact_show_update()
         
         #----------------------------------------------------------------------
         #button
@@ -689,8 +696,20 @@ class GUI:
             self.j.useroperation(data2,"ADDCONTACT")
             
             #update chatlist
-            self.lst.insert(tk.END,UserID_bob)
-
+            self.contacts.append(UserID_bob)
+            self.contact_show_update()
+            #update contacts -array        
+    
+    def contact_show_update(self):
+        #get json file contacts and insert contents here:
+        
+        #clear list
+        self.lst.delete(0,tk.END)
+        
+        #input changed contacts in listbox
+        for x in range(len(self.contacts)):
+            self.lst.insert(tk.END,self.contacts[x])
+        
     
     def men_serverconf(self):
         men=tk.Tk()
@@ -739,13 +758,13 @@ class GUI:
         men.title("Cryptograph-Change Encryption Algorithm")
         men.resizable(width=False, height=False)
         l1txt1 ='Cryptographic Configurations'
-        l2txt1 ='Insert Algorithm expenation here'
+        l2txt1 ='Insert Algorithm explenation here'
         l3txt1 ='(See the help menue)'
         l1 = tk.Message(men, width=1000, text=l1txt1)
         l2 = tk.Message(men, width=1000, text=l2txt1)
         l3 = tk.Message(men, width=1000, text=l3txt1)
         encryptcode=tk.Entry(men)
-        button=tk.Button(men,text='Configure server')#, command= lambda: self.input_get())
+        button=tk.Button(men,text='Configure Encryption', command= lambda: self.config_encrypt())
         l1.config(font=self.headFont)
         l1.grid(row=1,column=1,sticky="nsew")
         l2.grid(row=2,column=1,sticky="nsew")
@@ -753,7 +772,10 @@ class GUI:
         encryptcode.grid(row=4,column=1,sticky="nsew")
         button.grid(row=5,column=1,sticky="nsew")
         men.mainloop()
-
+    
+    def config_encrypt(self):
+        self.crypto_method=self.input_get()
+    
     def end(self):
         self.init.mainloop()
 
@@ -890,7 +912,8 @@ class Crypto_method:
     def Keys(method_str):
         if method_str== "rsa":
             keys=RSA.Keys_auto()
-        
+        elif method_str== "trans":
+            keys=["no public key for trans (is-private)"]
         return keys
             
     def Encrypt(method_str, message_str, pubkey):
@@ -902,6 +925,8 @@ class Crypto_method:
             message_numb=Crypto_method.Assign_number(message_str)
             #print("mes", message_numb)
             chiffre=RSA.Encrypt_large(message_numb, pubkey, 24) #the length 19 should be made variable in the future
+        elif method_str== "trans":
+            chiffre=Transposition().encrypt_Message(message_str)
         else:
             #if the method is incorrect/ not given, there will be an identity en/decryption-
             message_str=chiffre
@@ -913,6 +938,8 @@ class Crypto_method:
             message_str=RSA.Decrypt_large(chiffre, privkey,24)
 
             message_str=Crypto_method.Assign_charlst(message_str)
+        elif method_str=="trans":
+            message_str=Transposition().encrypt_Message(message_str)
         else:
             #if the method is incorrect/ not given, there will be an identity en/decryption-
             message_str=chiffre
