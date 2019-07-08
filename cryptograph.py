@@ -43,8 +43,12 @@ class USRdata():
         #files in directories
         path_bob_mes=USRdata.dir_bob(UserID_alice,UserID_bob,"messages.txt")
         USRdata.mfile(path_bob_mes,"1999-07-03 1"+" "+"Cryptograph"+">> "+"-Welcome to Cryptograph-"+'\n')
+        
         path_bob_time=USRdata.dir_bob(UserID_alice,UserID_bob,"lastTime.txt")
         USRdata.mfile(path_bob_time,"1999-07-03")
+        
+        path_bob_key=USRdata.dir_bob(UserID_alice,UserID_bob,"key.txt")
+        USRdata.mfile(path_bob_key,"")
         
     def store_Message(UserID_alice,UserID_bob,message,datetime):
         #messages must be an array of strings of format:
@@ -89,6 +93,10 @@ class USRdata():
 #                             GUI
 ##############################################################################
 
+#------------------------------------------------------------------------------
+#GUI Matrix convenience
+#------------------------------------------------------------------------------
+
 class GUImatrix:
     def grid_hor(frmlist,col):
         #give a list frm objects
@@ -99,6 +107,20 @@ class GUImatrix:
         #give a list frm objects
         for i in range(len(frmlist)):
             frmlist[i].grid(row=row,column=i,sticky="nsew")
+    
+    def grid_adjuste(x,rows,cols):
+        #input a list of rows and cols
+        #e.g. [[1,2],[1,10]], where 1 is the row 2 and 10 are the weights
+        #adjust grid when resized
+        #https://infohost.nmt.edu/tcc/help/pubs/tkinter/web/grid-config.html
+        for i in range(len(rows)):
+            x.grid_rowconfigure(rows[i][0], weight=rows[i][1])
+        for i in range(len(cols)):
+            x.grid_columnconfigure(cols[i][0], weight=cols[i][1])
+
+#------------------------------------------------------------------------------
+#GUI Main
+#------------------------------------------------------------------------------
 
 class GUI:
     def __init__(self):
@@ -126,10 +148,8 @@ class GUI:
         #is a dictionary buffering all incomming messages
         self.chat_buffer={}
         
-        self.newset={}
-        self.oldset={}
-        
-        self.login()
+        #start Cryptograph: Login
+        self.login_win()
         
     def pubkey_generate(self):
         # generates a new public key and prints it to the server
@@ -153,41 +173,23 @@ class GUI:
         
     def chat_update_init(self, UserID_alice,list_UserIDs_bob):
         
-        
-        #get all server contents from Bob
         for i in range(len(list_UserIDs_bob)):
-            #self.server_content=self.j.pull(list_UserIDs_bob[i])
-            #print(self.server_content)
-            #sieve messages dedicated to Alice 
             
-            
-                
-            #initialise buffer by creating lists dedicated to UserID-keys
-            
+            #initialise filesystem of bob (under alice)
             self.bob_initialice(UserID_alice,list_UserIDs_bob[i])
+            
+            #------------------------------------------------------------------
+            #print chat history
+            #------------------------------------------------------------------
+            #1.st load chathistory, dated while client was offline from the server
             mess_list=USRdata.extract_allMessage(UserID_alice,list_UserIDs_bob[i])
-            
+            #2.nd load message_buffer
             self.chat_buffer[list_UserIDs_bob[i]].extend(mess_list)
-            
-            
+            #3.rd input_make_bob these messages
             if self.UserID_Bob==list_UserIDs_bob[i]:
                 for ii in range(len(mess_list)):
                     self.iot.insert(tk.END,mess_list[ii][1])
-            
-            #print chat history
-            
-            
-            #1.st load chathistory, dated while client was offline from the server
-            
-            #2.nd load message_buffer
-            #3.rd input_make_bob these messages
-            
-            #get all contents (messages, contacts from server as initialised)
-            #maybe for performance create a synchronisation algorithms to
-            #save from big downloads, later
-        
-    
-        
+                
     def chat_update(self,UserID_alice, list_UserIDs_bob):
         #print(self.chat_buffer)
         #write a function creating a list contaning all messenge keys "
@@ -198,46 +200,48 @@ class GUI:
         
         #essential, as otherwise messanges no messages would income
         for i in range(len(list_UserIDs_bob)):
-            #try:
-            
+            #must be initialiced each loop as new bobs may have been created
+            #also inside bob_initialise this Initialisation will only take place if it hasn't been before
             self.bob_initialice(UserID_alice,list_UserIDs_bob[i])
             
-            lastTime=USRdata.extract_lastTime(UserID_alice,list_UserIDs_bob[i])
-            print(lastTime)
-            content=self.j.useroperation(json.dumps({"UserID_bob":list_UserIDs_bob[i],"UserID_alice":UserID_alice, "timedate":lastTime}),"GETMESSAGES")["messages"]
             
-            
-            #print these messages in the gui
-            for ii in range(len(content)):
-                message_chiffre=content[ii][1]
-                message_time=content[ii][0]
+            try:
+                #try is need, as if in json file on the server
+                #under UserID_bob no UserID_alice exists
+                #this will couse an error
                 
-                message_privkey=self.key_alice[1]
-                #print("chiffre", message_chiffre)
-                #Decrypt message
+                #------------------------------------------------------------------
+                #get content bob since last localy saved message 
+                #------------------------------------------------------------------
+                lastTime=USRdata.extract_lastTime(UserID_alice,list_UserIDs_bob[i])
+                #print(lastTime)
+                content=self.j.useroperation(json.dumps({"UserID_bob":list_UserIDs_bob[i],"UserID_alice":UserID_alice, "timedate":lastTime}),"GETMESSAGES")["messages"]
                 
-                #get decryotion mehtod from bob
-                crypto_method_bob="rsa"
+                #------------------------------------------------------------------
+                #handle content message by message 
+                #------------------------------------------------------------------
+                for ii in range(len(content)):
+                    message_chiffre=content[ii][1]
+                    message_time=content[ii][0]
+                    
+                    message_privkey=self.key_alice[1]
+                    #print("chiffre", message_chiffre)
+                    
+                    #get decryotion mehtod from bob
+                    crypto_method_bob="rsa"
+                    #decrypt at this method
+                    message_decryp=Crypto_method.Decrypt(crypto_method_bob,message_chiffre,message_privkey)
+                    
+                    #buffer & insert  Message (and store last Message date)
+                    self.input_make_bob(message_decryp,message_time,UserID_alice,list_UserIDs_bob[i])
+            except:
+                ...
                 
-                message_decryp=Crypto_method.Decrypt(crypto_method_bob,message_chiffre,message_privkey)
-                
-                #print(message)
-                self.input_make_bob(message_decryp,message_time,UserID_alice,list_UserIDs_bob[i])
-            #except:
-            #    ...
-        
-        #Write a function to print the messages in specific window- not all of them in the same
-        
-        #create a loop with after-mehtod running alongiside with the other mysterious
-        #tkinter loop(s) nowbody knows about
         
         #change this (milliseconds) if update is to slow- however performance might increase
         chat_update_period=2000
         
         self.init.after(chat_update_period, lambda: self.chat_update(UserID_alice,list_UserIDs_bob))
-        
-        
-        #lambda is magic- without tkinter does shit
 
     def input_make_alice(self,message,UserID_alice,UserID_bob):
         #prints the message "message" from User "namevar" to the gui
@@ -274,7 +278,6 @@ class GUI:
         keyID_alice=1
         keyID_bob=1
         
-        
         #Integrating encryption here:
         #get key from bob
         server_content=self.j.pull(UserID_bob)
@@ -289,7 +292,6 @@ class GUI:
         method_alice=self.crypto_method
         self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
         
-        
         data={'senderID': UserID_alice, 'receiverID': UserID_bob ,'publickeys': self.key_alice[0], 'keyID_alice': keyID_alice, 'keyID_bob': keyID_bob , "method": method_alice, 'message': message_chiffre, "nowtimedate":nowtimedate}
         self.j.push(UserID_alice,data,"POST")
 
@@ -299,18 +301,7 @@ class GUI:
         self.message.delete(1.0,tk.END)
         return message
         
-    def grid_adjuste(self,x,rows,cols):
-        #input a list of rows and cols
-        #e.g. [[1,2],[1,10]], where 1 is the row 2 and 10 are the weights
-        #adjust grid when resized
-        #https://infohost.nmt.edu/tcc/help/pubs/tkinter/web/grid-config.html
-        for i in range(len(rows)):
-            x.grid_rowconfigure(rows[i][0], weight=rows[i][1])
-        for i in range(len(cols)):
-            x.grid_columnconfigure(cols[i][0], weight=cols[i][1])
-    
-    def login(self):
-        
+    def login_win(self):
         
         self.login_win=tk.Tk()
         self.login_win.title("Cryptograph-Login")
@@ -359,7 +350,7 @@ class GUI:
         self.login_check_bool=False
         
         button=tk.Button(self.login_frame_foot,text='Make Login',command=lambda: self.login_make(),relief=self.buttonRelief,bg=self.buttonColor, font=self.buttonFont)
-        button2=tk.Button(self.login_frame_foot,text='Create Account',command=lambda: self.login_make_account_data(),relief=self.buttonRelief,bg=self.buttonColor, font=self.buttonFont)
+        button2=tk.Button(self.login_frame_foot,text='Create Account',command=lambda: self.login_win_upd(),relief=self.buttonRelief,bg=self.buttonColor, font=self.buttonFont)
         
         GUImatrix.grid_vert([button,button2],1)
         
@@ -373,7 +364,16 @@ class GUI:
         GUImatrix.grid_hor([frm_h,frm_o,hline2,frm_f],1)
         
         self.login_win.mainloop()
-
+    
+    def login_win_upd(self):
+        l4txt1="Reenter Password"
+        l4 = tk.Message(self.login_frame_opt, width=1000, text=l4txt1)
+        l4.grid(row=3,column=1,sticky="nsew")
+        pswd2=tk.Entry(self.login_frame_opt,show='*')
+        pswd2.grid(row=3,column=2,sticky="nsew")
+        button3=tk.Button(self.login_frame_foot,text='Confirm Account',command=lambda: self.make_account_server() ,relief=self.buttonRelief,bg=self.buttonColor, font=self.buttonFont)
+        button3.grid(row=1,column=2,sticky="nsew")
+    
     def login_make(self):
         usrname=self.login_usrname.get()
         password=self.login_password.get()
@@ -393,16 +393,6 @@ class GUI:
         elif self.login_check_bool==False:
             ...
         
-        
-    def login_make_account_data(self):
-        l4txt1="Reenter Password"
-        l4 = tk.Message(self.login_frame_opt, width=1000, text=l4txt1)
-        l4.grid(row=3,column=1,sticky="nsew")
-        pswd2=tk.Entry(self.login_frame_opt,show='*')
-        pswd2.grid(row=3,column=2,sticky="nsew")
-        button3=tk.Button(self.login_frame_foot,text='Confirm Account',command=lambda: self.make_account_server() ,relief=self.buttonRelief,bg=self.buttonColor, font=self.buttonFont)
-        button3.grid(row=1,column=2,sticky="nsew")
-    
     def make_account_server(self):
         #input is string
         UserID_bob=self.login_usrname.get()
@@ -416,7 +406,6 @@ class GUI:
             self.j.useroperation(dict_js,"CREATEACCOUNT")
             self.login_make()
         
-    
     def login_check(self,username, passphrase):
         #checks if the login makes sence /is correct
         #check if username exists:
@@ -436,10 +425,10 @@ class GUI:
     
     def input_userSwitch(self):
         #A function which switches the text window output by
-        listbox_row=self.lst.curselection()[0]
-        #print("listbox ", listbox_row)
         
         #current UserID of communication partner
+        listbox_row=self.lst.curselection()[0]
+        #print("listbox ", listbox_row)
         UserID_bob_curr=self.contacts[listbox_row]
         
         #delete contents of Textbox
@@ -480,10 +469,12 @@ class GUI:
             self.init.tk.call('wm', 'iconphoto', self.init._w, self.icon_img)
         except:
             ...
+        
+        
         #i found the above here:
         #https://stackoverflow.com/questions/11176638/tkinter-tclerror-error-reading-bitmap-file
         self.init.title("Cryptograph")
-        self.menubar()
+        GUImen.menubar(self.init,self, self.headFont)
         
         #----------------------------------------------------------------------
         #paned 1'st order
@@ -573,9 +564,9 @@ class GUI:
         #----------------------------------------------------------------------
         
         #self.grid_adjuste(self.init,[[1,1]],[[1,1],[2,10]])
-        self.grid_adjuste(self.home_frame1,[[1,1],[2,0]],[[1,1]])
-        self.grid_adjuste(self.home_subframe2_1,[[1,1]],[[1,1],[2,0]])
-        self.grid_adjuste(self.home_subframe2_2,[[1,1]],[[1,1],[2,0]])
+        GUImatrix.grid_adjuste(self.home_frame1,[[1,1],[2,0]],[[1,1]])
+        GUImatrix.grid_adjuste(self.home_subframe2_1,[[1,1]],[[1,1],[2,0]])
+        GUImatrix.grid_adjuste(self.home_subframe2_2,[[1,1]],[[1,1],[2,0]])
         
         #----------------------------------------------------------------------
         #Put it together
@@ -598,48 +589,84 @@ class GUI:
                 
         self.end()
       
-        
 
-    def menubar(self):
-        menubar=tk.Menu(self.init)
+    def men_addcontact_server(self,UserID_bob):
+        #write serverrequest to add user to account (.json file)
+        
+        data1=json.dumps({"UserID":UserID_bob})
+        exists=self.j.useroperation(data1,"FINDUSER")["exists"]
+        
+        if exists==True:
+            data2=json.dumps({"UserID_bob":UserID_bob,"UserID_alice": self.UserID_Alice})
+            self.j.useroperation(data2,"ADDCONTACT")
+            
+            #update chatlist
+            if UserID_bob not in self.contacts:
+                self.contacts.append(UserID_bob)
+            self.contact_show_update()
+            #update contacts -array        
+    
+    def contact_show_update(self):
+        #get json file contacts and insert contents here:
+        
+        #clear list
+        self.lst.delete(0,tk.END)
+        
+        #input changed contacts in listbox
+        for x in range(len(self.contacts)):
+            self.lst.insert(tk.END,self.contacts[x])
+        
+    
+    def config_encrypt(self):
+        self.crypto_method=self.input_get()
+    
+    def end(self):
+        self.init.mainloop()
+
+#------------------------------------------------------------------------------
+#GUI Menue
+#------------------------------------------------------------------------------
+
+class GUImen:
+
+    def menubar(motherObj,selfobj,font):
+        menubar=tk.Menu(motherObj)
         filemenu=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='File',menu=filemenu)
-        filemenu.add_command(label='Quit',command=self.init.quit)
+        filemenu.add_command(label='Quit',command=motherObj.quit())
         helpmenu=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='Help',menu=helpmenu)
-        helpmenu.add_command(label='About',command=lambda: self.men_about())
-        helpmenu.add_command(label='Help',command= lambda: self.men_help())
+        helpmenu.add_command(label='About',command=lambda: GUImen.men_about(motherObj,font))
+        helpmenu.add_command(label='Help',command= lambda: GUImen.men_help(font))
         configure=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='Config',menu=configure)
-        configure.add_command(label='Add contact',command=lambda: self.men_addcontact())
-        configure.add_command(label='Chats',command=self.init.quit)
-        configure.add_command(label='change default server',command=lambda: self.men_serverconf())
-        configure.add_command(label='Encryption Algorithm',command= lambda: self.men_encryptconf())
-        self.init.config(menu=menubar)
-        
-    def men_help(self):
+        configure.add_command(label='Add contact',command=lambda: GUImen.men_addcontact(selfobj,font))
+        configure.add_command(label='change default server',command=lambda: GUImen.men_serverconf(selfobj))
+        configure.add_command(label='Encryption Algorithm',command= lambda: GUImen.men_encryptconf(selfobj,font))
+        motherObj.config(menu=menubar)
+
+    def men_help(headFont):
         men=tk.Tk()
         men.title("Cryptograph-Help")
         men.resizable(width=False, height=False)
         text1='Cryptograph-Helppage:'
         text2='The help documentation can be found at:'
         text3='https://homepage.univie.ac.at/stephanb15/Applications/Cryptograph/documentation.html'
-        self.grid_adjuste(self.init,[[1,1]],[[1,1]])
         msg1 = tk.Message(men,width=1000, text=text1)
         msg2 = tk.Message(men,width=1000, text=text2)
         msg3 = tk.Message(men,width=1000, text=text3)
-        msg1.config(font=self.headFont)
+        msg1.config(font=headFont)
         
         GUImatrix.grid_hor([msg1,msg2,msg3],1)
         
         men.mainloop()
         
-    def men_about(self):
+    def men_about(motherObj,headFont):
         men=tk.Tk()
         #men.geometry("500x500")
         men.title("Cryptograph-About")
         men.resizable(width=False, height=False)
-        self.grid_adjuste(self.init,[[1,1]],[[1,1]])
+        GUImatrix.grid_adjuste(motherObj,[[1,1]],[[1,1]])
         l1txt1='This is a communication software with built in cryptographic algorithms.'
         l1txt2='It was created in 2019 by a team of students at the university of Vienna'
         l1txt3='(faculty of matheamtics) as part of a programming practical.'
@@ -650,14 +677,14 @@ class GUI:
         l2 = tk.Message(men, width=1000, text=l1txt1+'\n'+l1txt2+'\n'+l1txt3)
         l3 = tk.Message(men, width=1000, text='Authors names:')
         l4 = tk.Message(men, width=1000, text=l2txt1+'\n'+l2txt2+'\n'+l2txt3)
-        l1.config(font=self.headFont)
+        l1.config(font=headFont)
         l3.config(font=('times',12, 'bold'))
         
         GUImatrix.grid_hor([l1,l2,l3,l4],1)
         
         men.mainloop()
         
-    def men_addcontact(self):
+    def men_addcontact(selfobj,headFont):
         men=tk.Tk()
         men.title("Cryptograph-Add contact")
         men.resizable(width=False, height=False)
@@ -675,8 +702,8 @@ class GUI:
         hline2.create_line(5, 5, 500, 5)
         
         usrname=tk.Entry(men)
-        button=tk.Button(men,text='Find user', command= lambda: self.men_addcontact_server(usrname.get()))
-        l1.config(font=self.headFont)
+        button=tk.Button(men,text='Find user', command= lambda: selfobj.men_addcontact_server(usrname.get()))
+        l1.config(font=headFont)
         
         GUImatrix.grid_hor([l1,hline,l2,hline2,usrname,button,l3],1)
         
@@ -684,34 +711,8 @@ class GUI:
         #if contact exists add the contact- else print: contact doesn't exists
         #if wrinting it advanced use some search function
         men.mainloop()
-        
-    def men_addcontact_server(self,UserID_bob):
-        #write serverrequest to add user to account (.json file)
-        
-        data1=json.dumps({"UserID":UserID_bob})
-        exists=self.j.useroperation(data1,"FINDUSER")["exists"]
-        
-        if exists==True:
-            data2=json.dumps({"UserID_bob":UserID_bob,"UserID_alice": self.UserID_Alice})
-            self.j.useroperation(data2,"ADDCONTACT")
-            
-            #update chatlist
-            self.contacts.append(UserID_bob)
-            self.contact_show_update()
-            #update contacts -array        
     
-    def contact_show_update(self):
-        #get json file contacts and insert contents here:
-        
-        #clear list
-        self.lst.delete(0,tk.END)
-        
-        #input changed contacts in listbox
-        for x in range(len(self.contacts)):
-            self.lst.insert(tk.END,self.contacts[x])
-        
-    
-    def men_serverconf(self):
+    def men_serverconf(selfobj):
         men=tk.Tk()
         men.title("Cryptograph-Change Default server")
         men.resizable(width=False, height=False)
@@ -719,13 +720,13 @@ class GUI:
         l1 = tk.Message(men, width=1000, text=l1txt1)
         address=tk.Entry(men)
         button=tk.Button(men,text='Configure server')#, command= lambda: self.input_get())
-        l1.config(font=self.headFont)
+        l1.config(font=selfobj.headFont)
         
         GUImatrix.grid_hor([l1,address,button],1)
         
         men.mainloop()
         
-    def men_encryptconf(self):
+    def men_encryptconf(selfobj,font):
         #In order to choose from different encryption algorithm, a input format will
         #be given. And one can create his one algorithm by composition of
         #predefined Encryption algoritms
@@ -764,20 +765,14 @@ class GUI:
         l2 = tk.Message(men, width=1000, text=l2txt1)
         l3 = tk.Message(men, width=1000, text=l3txt1)
         encryptcode=tk.Entry(men)
-        button=tk.Button(men,text='Configure Encryption', command= lambda: self.config_encrypt())
-        l1.config(font=self.headFont)
+        button=tk.Button(men,text='Configure Encryption', command= lambda: selfobj.config_encrypt())
+        l1.config(font=font)
         l1.grid(row=1,column=1,sticky="nsew")
         l2.grid(row=2,column=1,sticky="nsew")
         l3.grid(row=3,column=1,sticky="nsew")
         encryptcode.grid(row=4,column=1,sticky="nsew")
         button.grid(row=5,column=1,sticky="nsew")
         men.mainloop()
-    
-    def config_encrypt(self):
-        self.crypto_method=self.input_get()
-    
-    def end(self):
-        self.init.mainloop()
 
 ##############################################################################
 #                             Client-Server
@@ -968,7 +963,7 @@ gui=GUI()
 
 ###Testing Encryption
 
-mykeys=RSA.Keys_auto()#823,827)
+#mykeys=RSA.Keys_auto()#823,827)
 #print(mykeys)
 #testvalues=[1000000100000010000001000000]*10
 #print([1000000]*1000)
@@ -998,16 +993,16 @@ mykeys=RSA.Keys_auto()#823,827)
 #numb=Crypto_method.Assign_number("12str_%&/§f 劒 ▦ ꉨ Ꞥ ꡁ ∉") ##testing some "random" unicode characters
 #print(numb)
 #print(Crypto_method.Assign_charlst(numb))
-message="12str_%&/§f 劒 ▦ ꉨ Ꞥ ꡁ ∉3"
-keys=Crypto_method.Keys("rsa")
-chiffre=Crypto_method.Encrypt("rsa",message,keys[0])
-decryp=Crypto_method.Decrypt("rsa",chiffre,keys[1])
-print(decryp)
+#message="12str_%&/§f 劒 ▦ ꉨ Ꞥ ꡁ ∉3"
+#keys=Crypto_method.Keys("rsa")
+#chiffre=Crypto_method.Encrypt("rsa",message,keys[0])
+#decryp=Crypto_method.Decrypt("rsa",chiffre,keys[1])
+#print(decryp)
 
 
-j=ioserver("178.191.88.79","8000")
-print(j.useroperation(json.dumps({"UserID":"Mustermann"}),"FINDUSER"))
-print(j.useroperation(json.dumps({"UserID_bob":"mustermann","UserID_alice":"stephanb15", "timedate":'2019-07-03 17:19:23.164112'}),"GETMESSAGES"))
+#j=ioserver("178.191.88.79","8000")
+#print(j.useroperation(json.dumps({"UserID":"Mustermann"}),"FINDUSER"))
+#print(j.useroperation(json.dumps({"UserID_bob":"mustermann","UserID_alice":"stephanb15", "timedate":'2019-07-03 17:19:23.164112'}),"GETMESSAGES"))
 
 
 #print(hex(int(Crypto_method.Assign_number("Some normal length of a message- i might must compress this fomat somehow"))))
