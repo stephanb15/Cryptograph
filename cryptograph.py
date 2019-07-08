@@ -1,3 +1,5 @@
+#This file is created by author: Stephan Bornberg
+
 import tkinter as tk
 import json
 import urllib.request
@@ -9,6 +11,7 @@ import http.client
 
 from lib.RSA import RSA
 from lib.transposition import Transposition
+from lib.substitution import Substitution
 
 ##############################################################################
 #                             Local FIles
@@ -189,6 +192,8 @@ class GUI:
             if self.UserID_Bob==list_UserIDs_bob[i]:
                 for ii in range(len(mess_list)):
                     self.iot.insert(tk.END,mess_list[ii][1])
+                # scroll down to end of window
+                self.iot.see(tk.END)
                 
     def chat_update(self,UserID_alice, list_UserIDs_bob):
         #print(self.chat_buffer)
@@ -251,6 +256,8 @@ class GUI:
         nowtimedate=str(datetime.datetime.now())
         
         self.iot.insert(tk.END,message_print)
+        # scroll down to end of window
+        self.iot.see(tk.END)
         self.chat_buffer[UserID_bob].append([nowtimedate,message_print])
         self.input_send(message,UserID_alice,UserID_bob,nowtimedate)
         USRdata.store_Message(UserID_alice,UserID_bob,message_print,nowtimedate)
@@ -266,7 +273,8 @@ class GUI:
         #(the current Listbox entry)
         if self.UserID_Bob==UserID_bob:
             self.iot.insert(tk.END,message_print)
-            
+            # scroll down to end of window
+            self.iot.see(tk.END)
         #finally store the time of the last server extraction from bob
         USRdata.store_lastTime(UserID_alice,UserID_bob,message_time)
         
@@ -361,7 +369,10 @@ class GUI:
         #Put it together
         #----------------------------------------------------------------------
         
-        GUImatrix.grid_hor([frm_h,frm_o,hline2,frm_f],1)
+        self.login_str1 = tk.StringVar()
+        self.l4 = tk.Label(self.login_win, textvariable=self.login_str1)
+        
+        GUImatrix.grid_hor([frm_h,frm_o,self.l4,hline2,frm_f],1)
         
         self.login_win.mainloop()
     
@@ -372,7 +383,7 @@ class GUI:
         pswd2=tk.Entry(self.login_frame_opt,show='*')
         pswd2.grid(row=3,column=2,sticky="nsew")
         button3=tk.Button(self.login_frame_foot,text='Confirm Account',command=lambda: self.make_account_server() ,relief=self.buttonRelief,bg=self.buttonColor, font=self.buttonFont)
-        button3.grid(row=1,column=2,sticky="nsew")
+        button3.grid(row=1,column=1,sticky="nsew")
     
     def login_make(self):
         usrname=self.login_usrname.get()
@@ -390,9 +401,7 @@ class GUI:
             #for some reason however
             #Create instance, Create another instance, create mainloop of instance, create mainloop of other instance
             #gives an exception error
-        elif self.login_check_bool==False:
-            ...
-        
+
     def make_account_server(self):
         #input is string
         UserID_bob=self.login_usrname.get()
@@ -405,7 +414,10 @@ class GUI:
             #create an "account" - so a .json file on the server side
             self.j.useroperation(dict_js,"CREATEACCOUNT")
             self.login_make()
-        
+        else:
+            print("hallo")
+            self.login_str1.set("This account already exists")
+
     def login_check(self,username, passphrase):
         #checks if the login makes sence /is correct
         #check if username exists:
@@ -440,6 +452,8 @@ class GUI:
             if buffer !=[]:
                 for i in range(len(buffer)):
                     self.iot.insert(tk.END,buffer[i][1])
+                # scroll down to end of window
+                self.iot.see(tk.END)
         except:
             ...
         
@@ -459,8 +473,7 @@ class GUI:
         
         #----------------------------------------------------------------------
         #GUI
-        #----------------------------------------------------------------------
-        
+        #----------------------------------------------------------------------        
         home_root = tk.Tk()
         self.init=home_root
         #create platform independant path
@@ -476,39 +489,32 @@ class GUI:
         self.init.title("Cryptograph")
         GUImen.menubar(self.init,self, self.headFont)
         
-        #----------------------------------------------------------------------
-        #paned 1'st order
-        #----------------------------------------------------------------------
         
+        #----------------------------------------------------------------------
+        #main rank
+        #----------------------------------------------------------------------        
+        self.home_frame_top=tk.Frame(self.init)
         self.home_paned=tk.PanedWindow(self.init,bd=10)
         self.home_paned.configure(bg=self.bg)
-        self.home_paned.pack(fill="both", expand=True)
-        
-        
-        
-        self.home_frame1=tk.Frame(self.init)
-        #self.home_frame1.grid(row=1,column=1,sticky="nsew")
-        self.home_frame2=tk.Frame(self.init)
-        #self.home_frame2.grid(row=1,column=2,sticky="nsew")
+
+        #----------------------------------------------------------------------
+        #paned 1'st order
+        #----------------------------------------------------------------------        
+        self.home_frame1=tk.Frame()
+        self.home_frame2=tk.Frame()
         
         #----------------------------------------------------------------------
         #paned 2'nd order
-        #----------------------------------------------------------------------
-        
+        #----------------------------------------------------------------------        
         self.home_subpaned=tk.PanedWindow(self.home_frame2,orient="vertical")
         self.home_subpaned.configure(bg=self.bg)
         self.home_subpaned.pack(fill="both", expand=True)
-        
-
         self.home_subframe2_1=tk.Frame(self.home_frame2)
-        #self.home_frame1.grid(row=1,column=1,sticky="nsew")
         self.home_subframe2_2=tk.Frame(self.home_frame2)
-        #self.home_frame2.grid(row=1,column=2,sticky="nsew")
                 
         #----------------------------------------------------------------------
         #chat list
-        #----------------------------------------------------------------------
-        
+        #----------------------------------------------------------------------        
         self.lst = tk.Listbox(self.home_frame1)
         self.lst.bind('<<ListboxSelect>>',lambda x: self.input_userSwitch())
         #don't ask me why but here you will need an "x" after lambda and
@@ -521,8 +527,7 @@ class GUI:
         
         #----------------------------------------------------------------------
         #button
-        #----------------------------------------------------------------------
-        
+        #----------------------------------------------------------------------        
         button=tk.Button(self.home_frame1,text='Encrypt/send Message ✍', command= lambda: self.input_make_alice(self.input_get(),self.UserID_Alice,self.UserID_Bob),bg=self.buttonColor ,relief=self.buttonRelief, font=self.buttonFont) # insert command=Encryptionfunction
         #used a unicode character for this:
         #https://unicode-table.com/en/270D/
@@ -531,46 +536,54 @@ class GUI:
         
         #----------------------------------------------------------------------
         #output window
-        #----------------------------------------------------------------------
-        
+        #----------------------------------------------------------------------        
         self.iot=tk.Text(self.home_subframe2_1,wrap=tk.WORD)
         self.iot.grid(row=1,column=1,sticky="nsew")
         
         #----------------------------------------------------------------------
-        #scrollbar
-        #----------------------------------------------------------------------
-        
-        self.home_scrollbar=tk.Scrollbar(self.home_subframe2_1, orient=tk.VERTICAL, command=self.iot.yview, width=15)
-        self.home_scrollbar.grid(row=1,column=2,sticky="nsew")
-        self.iot['yscrollcommand']=self.home_scrollbar.set
-        
-        #----------------------------------------------------------------------
         #input window
-        #----------------------------------------------------------------------
-        
+        #----------------------------------------------------------------------        
         self.message=tk.Text(self.home_subframe2_2, height=4)
         self.message.grid(row=1,column=1,sticky="nsew")
         
         #----------------------------------------------------------------------
         #scrollbar
         #----------------------------------------------------------------------
+        self.home_scrollbar=tk.Scrollbar(self.home_subframe2_1, orient=tk.VERTICAL, command=self.iot.yview, width=15)
+        self.home_scrollbar.grid(row=1,column=2,sticky="nsew")
+        self.iot['yscrollcommand']=self.home_scrollbar.set
         
         self.home_scrollbar_mes=tk.Scrollbar(self.home_subframe2_2, orient=tk.VERTICAL, command=self.message.yview, width=15)
         self.home_scrollbar_mes.grid(row=1,column=2,sticky="nsew")
         self.message['yscrollcommand']=self.home_scrollbar_mes.set
         
+        self.home_scrollbar_bobs=tk.Scrollbar(self.home_frame1, orient=tk.VERTICAL, command=self.lst.yview, width=15)
+        self.home_scrollbar_bobs.grid(row=1,column=2,sticky="nsew")
+        self.lst['yscrollcommand']=self.home_scrollbar_bobs.set
+        
+        #----------------------------------------------------------------------
+        #status widget
+        #----------------------------------------------------------------------
+        hf_txt1="Loged in as: "+self.UserID_Alice
+        hf_txt2="date: "+str(datetime.datetime.now())
+        status1=tk.Label(self.home_frame_top,text=hf_txt1)
+        status2=tk.Label(self.home_frame_top,text=hf_txt2)
+        GUImatrix.grid_hor([status1,status2],0)
+        
         #----------------------------------------------------------------------
         #adjust the grid
         #----------------------------------------------------------------------
-        
         #self.grid_adjuste(self.init,[[1,1]],[[1,1],[2,10]])
+        GUImatrix.grid_adjuste(self.init,[[0,0],[1,1]],[[0,1]])
         GUImatrix.grid_adjuste(self.home_frame1,[[1,1],[2,0]],[[1,1]])
         GUImatrix.grid_adjuste(self.home_subframe2_1,[[1,1]],[[1,1],[2,0]])
         GUImatrix.grid_adjuste(self.home_subframe2_2,[[1,1]],[[1,1],[2,0]])
         
         #----------------------------------------------------------------------
         #Put it together
-        #----------------------------------------------------------------------
+        #----------------------------------------------------------------------        
+        self.home_frame_top.grid(row=0,column=0,sticky="nsew")
+        self.home_paned.grid(row=1,column=0,sticky="nsew")
         
         self.home_paned.add(self.home_frame1,sticky="nsew",stretch="always")
         self.home_paned.add(self.home_frame2,sticky="nsew")
@@ -580,8 +593,7 @@ class GUI:
         
         #----------------------------------------------------------------------
         #Chat Update
-        #----------------------------------------------------------------------
-        
+        #----------------------------------------------------------------------        
         #initialise chat - get from server
         self.chat_update_init(self.UserID_Alice,self.contacts)
         
