@@ -23,6 +23,7 @@ class USRdata():
     wrkdir = os.path.dirname(__file__)
     
     dir_bob=lambda UserID_alice, UserID_bob, file : os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob, file)
+    dir_alice=lambda UserID_alice, file : os.path.join(USRdata.wrkdir,"usr",UserID_alice, file)
     
     def mkdir(path):
         #https://thispointer.com/how-to-create-a-directory-in-python/
@@ -35,11 +36,18 @@ class USRdata():
             write.write(message)
             write.close()
     
+    def createFilestru_prim(UserID_alice):
+        path_alice=os.path.join(USRdata.wrkdir,"usr",UserID_alice)
+        USRdata.mkdir(path_alice)
+        
+        path_bob_key=USRdata.dir_alice(UserID_alice,"key.txt")
+        open(path_bob_key, 'a').close()
+        
+    
     def createFilestru(UserID_alice, UserID_bob):
         
         #directories
-        path_alice=os.path.join(USRdata.wrkdir,"usr",UserID_alice)
-        USRdata.mkdir(path_alice)
+        USRdata.createFilestru_prim(UserID_alice)
         path_bob=os.path.join(USRdata.wrkdir,"usr",UserID_alice, UserID_bob)
         USRdata.mkdir(path_bob)
         
@@ -49,9 +57,6 @@ class USRdata():
         
         path_bob_time=USRdata.dir_bob(UserID_alice,UserID_bob,"lastTime.txt")
         USRdata.mfile(path_bob_time,"1999-07-03")
-        
-        path_bob_key=USRdata.dir_bob(UserID_alice,UserID_bob,"key.txt")
-        USRdata.mfile(path_bob_key,"")
         
     def store_Message(UserID_alice,UserID_bob,message,datetime):
         #messages must be an array of strings of format:
@@ -91,7 +96,25 @@ class USRdata():
         
         return buffer2
     
-
+    def store_keys(UserID_alice,keyID,key):
+        path_alice=USRdata.dir_alice(UserID_alice,"key.txt")
+        write=open(path_alice, 'a')
+        write.write(keyID+" "+key)
+        write.close()
+    
+    def extract_keys(UserID_alice):
+        USRdata.createFilestru_prim(UserID_alice)
+        path_alice=USRdata.dir_alice(UserID_alice,"key.txt")
+        read=open(path_alice, 'r')
+        data=read.readlines()
+        read.close()
+        data2={}
+        for i in range(len(data)):
+            linelist=data[i].split()
+            data2[int(linelist[0])]=linelist[1]
+        print(data)
+        return data2
+        
 ##############################################################################
 #                             GUI
 ##############################################################################
@@ -160,11 +183,14 @@ class GUI:
         #initialise new public keys
         
         #create a new public key for alice
-        keyID_alice=1
+        self.keyID_alice=self.keyID_alice+1
         method_alice=self.crypto_method
         self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
         UserID_alice=self.UserID_Alice
-        data={'senderID': UserID_alice,'publickeys': self.key_alice[0], 'keyID_alice': keyID_alice, "method": method_alice}
+        self.key_alice_private=self.key_alice[1]
+        USRdata.store_keys(UserID_alice,str(self.keyID_alice),str(self.key_alice_private))
+        
+        data={'senderID': UserID_alice,'publickeys': self.key_alice[0], 'keyID_alice': self.keyID_alice, "method": method_alice}
         #print(data)
         self.j.push(UserID_alice,data,"POSTKEY")
         
@@ -256,8 +282,7 @@ class GUI:
         nowtimedate=str(datetime.datetime.now())
         
         self.iot.insert(tk.END,message_print)
-        # scroll down to end of window
-        self.iot.see(tk.END)
+        self.iot.see(tk.END) # scroll down to end of window
         self.chat_buffer[UserID_bob].append([nowtimedate,message_print])
         self.input_send(message,UserID_alice,UserID_bob,nowtimedate)
         USRdata.store_Message(UserID_alice,UserID_bob,message_print,nowtimedate)
@@ -283,9 +308,8 @@ class GUI:
         
         #for now keyID is constant later there should be a local database of keys created earilier in time
         # so in order to be able to decrypt messages from earlier time
-        keyID_alice=1
-        keyID_bob=1
-        
+        self.keyID_alice=self.keyID_alice+1
+     
         #Integrating encryption here:
         #get key from bob
         server_content=self.j.pull(UserID_bob)
@@ -299,8 +323,11 @@ class GUI:
         #create a new public key for alice
         method_alice=self.crypto_method
         self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
+        self.key_alice_private=Crypto_method.Keys(method_alice)
         
-        data={'senderID': UserID_alice, 'receiverID': UserID_bob ,'publickeys': self.key_alice[0], 'keyID_alice': keyID_alice, 'keyID_bob': keyID_bob , "method": method_alice, 'message': message_chiffre, "nowtimedate":nowtimedate}
+        USRdata.store_keys(UserID_alice,str(self.keyID_alice),str(self.key_alice_private))
+        
+        data={'senderID': UserID_alice, 'receiverID': UserID_bob ,'publickeys': self.key_alice[0], 'keyID_alice': self.keyID_alice, 'keyID_bob': keyID_bob , "method": method_alice, 'message': message_chiffre, "nowtimedate":nowtimedate}
         self.j.push(UserID_alice,data,"POST")
 
     def input_get(self):
@@ -390,9 +417,18 @@ class GUI:
         password=self.login_password.get()
         self.login_check(usrname,password)
         if self.login_check_bool==True:
+            
             self.login_win.destroy()
             #the following are IMPORTANT initalisations
             self.UserID_Alice=usrname
+            self.UserIDs_Alice=USRdata.extract_keys(self.UserID_Alice).keys()
+            if len(self.UserIDs_Alice)!=0:
+                self.keyID_alice=max(self.UserIDs_Alice)
+                if type(self.keyID_alice)!=int:
+                    self.keyID_alice=0
+            else:
+                self.keyID_alice=0
+            print(self.keyID_alice)
             self.pubkey_generate()
             self.home()
             #Note:
@@ -415,7 +451,6 @@ class GUI:
             self.j.useroperation(dict_js,"CREATEACCOUNT")
             self.login_make()
         else:
-            print("hallo")
             self.login_str1.set("This account already exists")
 
     def login_check(self,username, passphrase):
@@ -663,7 +698,7 @@ class GUImen:
         men.resizable(width=False, height=False)
         text1='Cryptograph-Helppage:'
         text2='The help documentation can be found at:'
-        text3='https://homepage.univie.ac.at/stephanb15/Applications/Cryptograph/documentation.html'
+        text3='https://github.com/stephanb15/Cryptograph/wiki'
         msg1 = tk.Message(men,width=1000, text=text1)
         msg2 = tk.Message(men,width=1000, text=text2)
         msg3 = tk.Message(men,width=1000, text=text3)
@@ -918,9 +953,10 @@ class Crypto_method:
     
     def Keys(method_str):
         if method_str== "rsa":
-            keys=RSA.Keys_auto()
+            keys1=RSA.Keys_auto()
+            keys=keys1
         elif method_str== "trans":
-            keys=["no public key for trans (is-private)"]
+            keys=[1,1] #just random values since there are no keys fore these functions
         return keys
             
     def Encrypt(method_str, message_str, pubkey):
@@ -946,7 +982,7 @@ class Crypto_method:
 
             message_str=Crypto_method.Assign_charlst(message_str)
         elif method_str=="trans":
-            message_str=Transposition().encrypt_Message(message_str)
+            message_str=Transposition().decrypt_Message(message_str)
         else:
             #if the method is incorrect/ not given, there will be an identity en/decryption-
             message_str=chiffre
