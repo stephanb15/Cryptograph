@@ -187,7 +187,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         keys_trunc.sort()
         message_trunc=[]
         for i in range(len(keys_trunc)):
-            message_trunc.append([keys_trunc[i],serverData["message"][UserID_alice][keys_trunc[i]]["message"]])
+            message_trunc.append([keys_trunc[i],serverData["message"][UserID_alice][keys_trunc[i]]["message"],serverData["message"][UserID_alice][keys_trunc[i]]["keyID"]])
         pydict={"messages":message_trunc}
         jsondict=json.dumps(pydict)
         data=bytes(jsondict,encoding='utf8')

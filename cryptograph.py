@@ -99,7 +99,7 @@ class USRdata():
     def store_keys(UserID_alice,keyID,key):
         path_alice=USRdata.dir_alice(UserID_alice,"key.txt")
         write=open(path_alice, 'a')
-        write.write(keyID+" "+key)
+        write.write(keyID+" "+key+"\n")
         write.close()
     
     def extract_keys(UserID_alice):
@@ -110,7 +110,7 @@ class USRdata():
         read.close()
         data2={}
         for i in range(len(data)):
-            linelist=data[i].split()
+            linelist=data[i].split(" ",1)
             data2[int(linelist[0])]=linelist[1]
         print(data)
         return data2
@@ -255,6 +255,8 @@ class GUI:
                     message_chiffre=content[ii][1]
                     message_time=content[ii][0]
                     
+                    message_privkey_id=int(content[ii][2])
+                    #get the stored private key form the dictionary
                     message_privkey=self.key_alice[1]
                     #print("chiffre", message_chiffre)
                     
@@ -421,9 +423,9 @@ class GUI:
             self.login_win.destroy()
             #the following are IMPORTANT initalisations
             self.UserID_Alice=usrname
-            self.UserIDs_Alice=USRdata.extract_keys(self.UserID_Alice).keys()
-            if len(self.UserIDs_Alice)!=0:
-                self.keyID_alice=max(self.UserIDs_Alice)
+            self.keys_Alice=USRdata.extract_keys(self.UserID_Alice)
+            if len(self.keys_Alice.keys())!=0:
+                self.keyID_alice=max(self.keys_Alice.keys())
                 if type(self.keyID_alice)!=int:
                     self.keyID_alice=0
             else:
@@ -464,6 +466,7 @@ class GUI:
             self.login_check_bool=True
         else:
             self.login_check_bool=False
+            self.login_str1.set("This account does NOT exist")
         #print(self.login_check_bool)
         #if 
         #check if passphrase is correct:

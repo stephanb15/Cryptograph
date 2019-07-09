@@ -6,7 +6,9 @@ Created on Mon Jul  1 15:06:57 2019
 @author: stephan
 """
 
-from lib.crypMath import crymath
+#from lib.cryptoMath import crymath
+#<--this for some reason doesn't work inside the lib directory
+import lib.cryptoMath
 
 class RSA:
     #static methodes are used in this class to prevent chaos
@@ -26,9 +28,9 @@ class RSA:
             #which might either be a performance issue or a security issue
         #find a "d" with d*e kongurent 1 module phin
         public=(e,n)
-        d=crymath.extndEuclid(e,phin)[1]
+        d=lib.cryptoMath.crymath.extndEuclid(e,phin)[1]
         #Find a representant inside the proper borders
-        d=crymath.findrepres(d,phin,phin,1)
+        d=lib.cryptoMath.crymath.findrepres(d,phin,phin,1)
         private=(d,(prime1,prime2))
         return (public,private)
     
@@ -93,7 +95,7 @@ class RSA:
         #add trailing zeros
         msg_end=msg_end+(blocklength-msg_end_len)*"0"
         message_blocks.extend([int(msg_end)])
-        print(message_blocks)
+        #print(message_blocks)
         #proof that message is a contenation of the elements of message_blocks such that
         #message == message_blocks[0] || message_blocks[1] || ... || message_blocks[n],
         #where n is the maximal projection of list message_blocks
@@ -124,9 +126,9 @@ class RSA:
             message_i=RSA.Decrypt(message_blocks[i], privkey)
             message_str=str(message_i)
             len_zero_block=blocklength-len(message_str)
-            print("str1",message_str)
+            #print("str1",message_str)
             message_str=len_zero_block*"0"+message_str
-            print("str2",message_str)
+            #print("str2",message_str)
             message_plain+=message_str
         return message_plain
-    
+
