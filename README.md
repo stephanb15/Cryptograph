@@ -28,7 +28,12 @@ The following imported modules were of core interest:
 Cryptograph can explicitly be downloaded from Github: \
 `git clone https://github.com/stephanb15/Cryptograph.git` \
 For building the Cryptograph Apllication type the following commands \
-`put a command here`
+###Linux:
+`sh BUILD.sh`
+###Windows & Mac
+There is no build command available, you will have to adapt this on your own, if you like. \
+Or go in the `Cryptograph` directory and enter; \
+`python3 cryptograph.py` (as always).
 
 ## Getting Started
 In the directory (left-) double-click the executable \
