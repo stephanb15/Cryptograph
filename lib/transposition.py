@@ -8,7 +8,7 @@ class Transposition:
         
         self.key = random.randint(2,5)
 
-    def encrypt_Message(self,message):
+def encrypt_Message(self,message):
         
         rows = self.key
         columns = int(ceil(len(message) / self.key))
@@ -41,8 +41,7 @@ class Transposition:
         
         if len(message) != rows*columns:
             
-            inaccurate_List = [i for i in range(columns*rows - len(message))]
-            accurate_List = [(rows - i)*columns-1 for i in inaccurate_List]
+            accurate_List = [((rows - i) * columns - 1) % (rows * columns) for i in range(columns*rows - len(message))]
             accurate_List.reverse()
             
             for i in accurate_List:
