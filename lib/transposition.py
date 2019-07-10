@@ -7,8 +7,8 @@ class Transposition:
     def __init__(self):
         
         self.key = random.randint(2,5)
-
-def encrypt_Message(self,message):
+    
+    def encrypt_Message(self,message):
         
         rows = self.key
         columns = int(ceil(len(message) / self.key))
