@@ -27,8 +27,8 @@ The following imported modules were of core interest:
 ## Download & Build
 Cryptograph can explicitly be downloaded from Github: \
 `git clone https://github.com/stephanb15/Cryptograph.git` \
-For building the Cryptograph Apllication type the following commands \
-### Linux:
+For building the Cryptograph Apllication type the following commands in your shell:
+### Linux
 `sh BUILD.sh`
 ### Windows & Mac
 There is no build command available, you will have to adapt this on your own, if you like. \
