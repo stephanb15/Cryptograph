@@ -41,7 +41,7 @@ In the directory (left-) double-click the executable \
 If Using the GUI is not-trivial for you, have a look at
 [GUI](https://github.com/stephanb15/Cryptograph/wiki/GUI)
 So assuming you could login, what you will see is a window like this
-![](https://github.com/stephanb15/Cryptograph/blob/master/Media/Screenshot%20from%202019-07-01%2016-53-25.png)
+![](https://github.com/stephanb15/Cryptograph/blob/master/Media/Screenshot%20from%202019-07-11%2002-05-31.png)
 
 1. Click on the top Left Template which lists your User-Name.
 2. Click on the button text-field and start writing on your keyboard after the cursor starts blinking
