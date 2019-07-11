@@ -38,7 +38,7 @@ Or go in the `Cryptograph` directory and enter; \
 `python3 cryptograph.py` (as always).
 
 ## Getting Started
-In the directory (left-) double-click the executable \
+So now (left-) double-click this icon \
 (put the executable name here)
 If Using the GUI is not-trivial for you, have a look at
 [GUI](https://github.com/stephanb15/Cryptograph/wiki/GUI)
