@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #This file is created by author: Stephan Bornberg
 
 import tkinter as tk
