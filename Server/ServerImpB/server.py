@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#This file is created by author: Stephan Bornberg
 # -*- coding: utf-8 -*-
 """
 Created on Thu May 23 19:28:05 2019
@@ -192,6 +193,36 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         jsondict=json.dumps(pydict)
         data=bytes(jsondict,encoding='utf8')
         self.senddata(data)
+        
+    def do_GETCONTACTLIST(self):
+        data=self.getdata()
+        pydict=json.loads(data)
+        UserID_alice=pydict["UserID_alice"]
+        
+        file=open(UserID_alice +'.json', 'r')
+        data=json.load(file)
+        
+        contactlist=list(data["message"].keys())
+        
+        pydict={"contacts":contactlist}
+        jsondict=json.dumps(pydict)
+        dataSend=bytes(jsondict,encoding='utf8')
+        self.senddata(dataSend)
+        
+    def do_GETALICEKEYID(self):
+        data=self.getdata()
+        pydict=json.loads(data)
+        UserID_alice=pydict["UserID_alice"]
+        
+        file=open(UserID_alice +'.json', 'r')
+        data=json.load(file)
+        keyID=data["mykey"]["keyID"]
+        
+        pydict={"keyID":keyID}
+        jsondict=json.dumps(pydict)
+        dataSend=bytes(jsondict,encoding='utf8')
+        self.senddata(dataSend)
+        
         
 Handler =  MyHTTPRequestHandler
 

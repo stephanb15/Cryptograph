@@ -1,8 +1,0 @@
-[Desktop Entry]
-Encoding=UTF-8
-Version=1.0
-Type=Application
-Terminal=false
-Exec=/home/stephan/.local/share/Cryptograph/cryptograph.py
-Icon=/home/stephan/.local/share/Cryptograph/Icons/icon.png
-Name=Cryptograph

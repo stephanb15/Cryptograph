@@ -1,3 +1,5 @@
+#This file is created by author: Jakob Lanser
+
 import numpy as np
 import random
 from math import ceil

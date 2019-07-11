@@ -9,6 +9,7 @@ import os
 import math
 import datetime
 import http.client
+import traceback
 
 from lib.RSA import RSA
 from lib.transposition import Transposition
@@ -97,10 +98,10 @@ class USRdata():
         
         return buffer2
     
-    def store_keys(UserID_alice,keyID,key):
+    def store_keys(UserID_alice,keyID,method,key):
         path_alice=USRdata.dir_alice(UserID_alice,"key.txt")
         write=open(path_alice, 'a')
-        write.write(keyID+" "+key+"\n")
+        write.write(keyID+" "+method +" "+key+"\n")
         write.close()
     
     def extract_keys(UserID_alice):
@@ -111,9 +112,9 @@ class USRdata():
         read.close()
         data2={}
         for i in range(len(data)):
-            linelist=data[i].split(" ",1)
-            data2[int(linelist[0])]=linelist[1]
-        print(data)
+            linelist=data[i].split(" ",2)
+            data2[int(linelist[0])]=(linelist[1],eval(linelist[2]))
+        #print(data2)
         return data2
         
 ##############################################################################
@@ -149,6 +150,28 @@ class GUImatrix:
 #GUI Main
 #------------------------------------------------------------------------------
 
+#keyflow chema
+#            1: Asuuming there is no key created in the local file system
+#                 X: occurs if 
+#                    -keyfile was deleted (we may assume that the keyfile is
+#                       not deleted during client application running
+#                    -account is created
+#              ,one must create this key and save it in the keyfile
+#               so that this key can be sent to the server
+
+#            2: The key must be created the following way:
+#               In the server there must be keyID file, which stores the last 
+#               keyID created                
+#               This is necessary, as if client1 deletes his keys, client2 might
+#               want to send a message with one of the deleted keys -he might not know
+#               ,which client1 can't decrypt then- or will decrypt with a key woth wong 
+#               assigned keyID
+#               -client1 must therfore make a server request get the last keyID
+#                and create an KeyID+1
+#               -then he can create a key send the key and keyID+1 to the server
+                 
+
+
 class GUI:
     def __init__(self):
         
@@ -183,16 +206,27 @@ class GUI:
         
         #initialise new public keys
         
-        #create a new public key for alice
-        self.keyID_alice=self.keyID_alice+1
-        method_alice=self.crypto_method
-        self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
-        UserID_alice=self.UserID_Alice
-        self.key_alice_private=self.key_alice[1]
-        USRdata.store_keys(UserID_alice,str(self.keyID_alice),str(self.key_alice_private))
+        #get last KeyID from server
+        UserID_send=json.dumps({"UserID_alice": self.UserID_Alice})
+        server_key=self.j.useroperation(UserID_send,"GETALICEKEYID")["keyID"]
+        keyID_alice=server_key
+        #create new KeyID
+        keyID_alice=keyID_alice+1
         
-        data={'senderID': UserID_alice,'publickeys': self.key_alice[0], 'keyID_alice': self.keyID_alice, "method": method_alice}
-        #print(data)
+        #----------------------------------------------------------------------
+        #create a new public key for alice
+        #----------------------------------------------------------------------
+        method_alice=self.crypto_method
+        key_alice=Crypto_method.Keys(method_alice) ##alice public key
+        UserID_alice=self.UserID_Alice
+        key_alice_private=key_alice[1]
+        USRdata.store_keys(UserID_alice,str(keyID_alice),method_alice,str(key_alice_private))
+        self.keys_buffer.update({keyID_alice: (method_alice,key_alice_private)})
+        
+        #----------------------------------------------------------------------
+        #send data to server
+        #----------------------------------------------------------------------
+        data={'senderID': UserID_alice,'publickeys': key_alice[0], 'keyID_alice': keyID_alice, "method": method_alice}
         self.j.push(UserID_alice,data,"POSTKEY")
         
     def bob_initialice(self,UserID_alice,UserID_bob):
@@ -215,6 +249,7 @@ class GUI:
             mess_list=USRdata.extract_allMessage(UserID_alice,list_UserIDs_bob[i])
             #2.nd load message_buffer
             self.chat_buffer[list_UserIDs_bob[i]].extend(mess_list)
+            self.keys_buffer=USRdata.extract_keys(UserID_alice)
             #3.rd input_make_bob these messages
             if self.UserID_Bob==list_UserIDs_bob[i]:
                 for ii in range(len(mess_list)):
@@ -256,20 +291,32 @@ class GUI:
                     message_chiffre=content[ii][1]
                     message_time=content[ii][0]
                     
+                    #1: Find Private key id in server-content 
                     message_privkey_id=int(content[ii][2])
-                    #get the stored private key form the dictionary
-                    message_privkey=self.key_alice[1]
-                    #print("chiffre", message_chiffre)
+                    print(message_privkey_id)
                     
-                    #get decryotion mehtod from bob
-                    crypto_method_bob="rsa"
-                    #decrypt at this method
-                    message_decryp=Crypto_method.Decrypt(crypto_method_bob,message_chiffre,message_privkey)
-                    
-                    #buffer & insert  Message (and store last Message date)
-                    self.input_make_bob(message_decryp,message_time,UserID_alice,list_UserIDs_bob[i])
+                    #2 Find message private Key inside key.txt file
+                    #extract from file command here
+                    keys=self.keys_buffer
+                    print(keys)
+                    #exception here, if keyId does not exist
+                    #print "Cryptograph>>  Decryption not possible- private key does not exist"
+                    try:
+                        crypto_method_bob=keys[message_privkey_id][0]
+                        message_privkey=keys[message_privkey_id][1]
+                        
+                        print("method:",crypto_method_bob)
+                        print("key",message_privkey)
+                        #decrypt at this configurations
+                        message_decryp=Crypto_method.Decrypt(crypto_method_bob,message_chiffre,message_privkey)
+                        
+                        #buffer & insert  Message (and store last Message date)
+                        self.input_make_bob(message_decryp,message_time,UserID_alice,list_UserIDs_bob[i])
+                    except Exception: 
+                        traceback.print_exc() #prints error message
+                        #self.input_make_bob("Decryption not possible- private key may not exist",message_time,UserID_alice,list_UserIDs_bob[i])
             except:
-                ...
+                pass
                 
         
         #change this (milliseconds) if update is to slow- however performance might increase
@@ -307,13 +354,17 @@ class GUI:
         USRdata.store_lastTime(UserID_alice,UserID_bob,message_time)
         
     def input_send(self,message,UserID_alice,UserID_bob,nowtimedate):
-        #print(message)
         
-        #for now keyID is constant later there should be a local database of keys created earilier in time
-        # so in order to be able to decrypt messages from earlier time
-        self.keyID_alice=self.keyID_alice+1
-     
-        #Integrating encryption here:
+        #get last KeyID from server
+        UserID_send=json.dumps({"UserID_alice": self.UserID_Alice})
+        server_key=self.j.useroperation(UserID_send,"GETALICEKEYID")["keyID"]
+        keyID_alice=server_key
+        #create new KeyID
+        keyID_alice=keyID_alice+1
+        
+        #----------------------------------------------------------------------
+        #Encrypt message for bob
+        #----------------------------------------------------------------------
         #get key from bob
         server_content=self.j.pull(UserID_bob)
         #print(server_content)
@@ -323,16 +374,24 @@ class GUI:
         keyID_bob=server_content["mykey"]["keyID"]
         message_chiffre=Crypto_method.Encrypt(method_bob,message,key_bob)
         
+        #----------------------------------------------------------------------
         #create a new public key for alice
+        #----------------------------------------------------------------------
         method_alice=self.crypto_method
-        self.key_alice=Crypto_method.Keys(method_alice) ##alice public key
-        self.key_alice_private=Crypto_method.Keys(method_alice)
+        key_alice=Crypto_method.Keys(method_alice) ##alice public key
+        key_alice_private=key_alice[1]
+        #store public key of alice locally
+        keyID_alice_str=str(keyID_alice)
+        USRdata.store_keys(UserID_alice,keyID_alice_str,method_alice,str(key_alice_private))
+        self.keys_buffer.update({keyID_alice: (method_alice,key_alice_private)})
+        #print(self.keys_buffer)
         
-        USRdata.store_keys(UserID_alice,str(self.keyID_alice),str(self.key_alice_private))
-        
-        data={'senderID': UserID_alice, 'receiverID': UserID_bob ,'publickeys': self.key_alice[0], 'keyID_alice': self.keyID_alice, 'keyID_bob': keyID_bob , "method": method_alice, 'message': message_chiffre, "nowtimedate":nowtimedate}
+        #----------------------------------------------------------------------
+        #send data to server
+        #----------------------------------------------------------------------
+        data={'senderID': UserID_alice, 'receiverID': UserID_bob ,'publickeys': key_alice[0], 'keyID_alice': keyID_alice, 'keyID_bob': keyID_bob , "method": method_alice, 'message': message_chiffre, "nowtimedate":nowtimedate}
         self.j.push(UserID_alice,data,"POST")
-
+        
     def input_get(self):
         #get input inserted in the editor at command "Enter Key" or Button
         message=self.message.get(1.0, tk.END)
@@ -414,7 +473,7 @@ class GUI:
         pswd2.grid(row=3,column=2,sticky="nsew")
         button3=tk.Button(self.login_frame_foot,text='Confirm Account',command=lambda: self.make_account_server() ,relief=self.buttonRelief,bg=self.buttonColor, font=self.buttonFont)
         button3.grid(row=1,column=1,sticky="nsew")
-    
+        
     def login_make(self):
         usrname=self.login_usrname.get()
         password=self.login_password.get()
@@ -424,15 +483,7 @@ class GUI:
             self.login_win.destroy()
             #the following are IMPORTANT initalisations
             self.UserID_Alice=usrname
-            self.keys_Alice=USRdata.extract_keys(self.UserID_Alice)
-            if len(self.keys_Alice.keys())!=0:
-                self.keyID_alice=max(self.keys_Alice.keys())
-                if type(self.keyID_alice)!=int:
-                    self.keyID_alice=0
-            else:
-                self.keyID_alice=0
-            print(self.keyID_alice)
-            self.pubkey_generate()
+            #self.pubkey_generate()
             self.home()
             #Note:
             #you are allowed to (create instance of class tk.Tk())
@@ -501,9 +552,10 @@ class GUI:
 
     def home(self):
         
-        
         #list of contacts of user
-        self.contacts=list(self.j.pull(self.UserID_Alice)["message"].keys())
+        UserID_send=json.dumps({"UserID_alice": self.UserID_Alice})
+        contacts_list=self.j.useroperation(UserID_send,"GETCONTACTLIST")["contacts"]
+        self.contacts=contacts_list
         
         #initialise self.UserID_Bob - the current communication partner
         self.UserID_Bob=self.contacts[0]
@@ -512,7 +564,7 @@ class GUI:
         
         #----------------------------------------------------------------------
         #GUI
-        #----------------------------------------------------------------------        
+        #----------------------------------------------------------------------
         home_root = tk.Tk()
         self.init=home_root
         #create platform independant path
@@ -634,7 +686,10 @@ class GUI:
         #Chat Update
         #----------------------------------------------------------------------        
         #initialise chat - get from server
+        
         self.chat_update_init(self.UserID_Alice,self.contacts)
+        
+        self.pubkey_generate()
         
         self.chat_update(self.UserID_Alice,self.contacts)
                 
