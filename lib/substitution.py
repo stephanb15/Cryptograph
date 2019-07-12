@@ -16,15 +16,18 @@ class Substitution:
         for x in range(65,91):
             self.subAlphabet.append(chr(x))
         for x in range(97,123):
-            self.subAlphabet.append(chr(x))  
+            self.subAlphabet.append(chr(x))
         random.shuffle(self.subAlphabet)
     
     def encrypt_Message(self,message):
         
         encryptedMessage = ""
         for c in message:
-            i = self.alphabet.index(c)
-            c = self.subAlphabet[i]
+            try:
+                i = self.alphabet.index(c)
+                c = self.subAlphabet[i]
+            except:
+                c=self.subAlphabet[self.alphabet.index("?")]
             encryptedMessage += c
         return encryptedMessage
     
@@ -35,4 +38,4 @@ class Substitution:
             i = self.subAlphabet.index(c)
             c = self.alphabet[i]
             decryptedMessage += c
-            return decryptedMessage
+        return decryptedMessage

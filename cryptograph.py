@@ -293,12 +293,12 @@ class GUI:
                     
                     #1: Find Private key id in server-content 
                     message_privkey_id=int(content[ii][2])
-                    print(message_privkey_id)
+                    #print(message_privkey_id)
                     
                     #2 Find message private Key inside key.txt file
                     #extract from file command here
                     keys=self.keys_buffer
-                    print(keys)
+                    #print(keys)
                     #exception here, if keyId does not exist
                     #print "Cryptograph>>  Decryption not possible- private key does not exist"
                     try:
@@ -306,7 +306,7 @@ class GUI:
                         message_privkey=keys[message_privkey_id][1]
                         
                         print("method:",crypto_method_bob)
-                        print("key",message_privkey)
+                        #print("key",message_privkey)
                         #decrypt at this configurations
                         message_decryp=Crypto_method.Decrypt(crypto_method_bob,message_chiffre,message_privkey)
                         
@@ -657,9 +657,12 @@ class GUI:
         #----------------------------------------------------------------------
         hf_txt1="Loged in as: "+self.UserID_Alice
         hf_txt2="date: "+str(datetime.datetime.now())
+        self.hf_txt3= tk.StringVar()
         status1=tk.Label(self.home_frame_top,text=hf_txt1)
         status2=tk.Label(self.home_frame_top,text=hf_txt2)
-        GUImatrix.grid_hor([status1,status2],0)
+        status3=tk.Label(self.home_frame_top,textvariable=self.hf_txt3)
+        self.hf_txt3.set("method: "+self.crypto_method)
+        GUImatrix.grid_hor([status1,status2,status3],0)
         
         #----------------------------------------------------------------------
         #adjust the grid
@@ -723,8 +726,9 @@ class GUI:
             self.lst.insert(tk.END,self.contacts[x])
         
     
-    def config_encrypt(self):
-        self.crypto_method=self.input_get()
+    def config_encrypt(self,encryptcode):
+        self.crypto_method=encryptcode.get()
+        self.hf_txt3.set("method: "+self.crypto_method)
     
     def end(self):
         self.init.mainloop()
@@ -747,7 +751,7 @@ class GUImen:
         configure=tk.Menu(menubar,tearoff=0)
         menubar.add_cascade(label='Config',menu=configure)
         configure.add_command(label='Add contact',command=lambda: GUImen.men_addcontact(selfobj,font))
-        configure.add_command(label='change default server',command=lambda: GUImen.men_serverconf(selfobj))
+        #configure.add_command(label='change default server',command=lambda: GUImen.men_serverconf(selfobj))
         configure.add_command(label='Encryption Algorithm',command= lambda: GUImen.men_encryptconf(selfobj,font))
         motherObj.config(menu=menubar)
 
@@ -871,7 +875,7 @@ class GUImen:
         l2 = tk.Message(men, width=1000, text=l2txt1)
         l3 = tk.Message(men, width=1000, text=l3txt1)
         encryptcode=tk.Entry(men)
-        button=tk.Button(men,text='Configure Encryption', command= lambda: selfobj.config_encrypt())
+        button=tk.Button(men,text='Configure Encryption', command= lambda: selfobj.config_encrypt(encryptcode))
         l1.config(font=font)
         l1.grid(row=1,column=1,sticky="nsew")
         l2.grid(row=2,column=1,sticky="nsew")
@@ -939,7 +943,7 @@ class ioserver:
             instance.read()
         except http.client.BadStatusLine as exists:
             exists2=json.loads(str(exists))
-            print("exists2: ",exists2)
+            #print("exists2: ",exists2)
         return exists2
     
 class virtstaticip:
@@ -1015,7 +1019,14 @@ class Crypto_method:
             keys1=RSA.Keys_auto()
             keys=keys1
         elif method_str== "trans":
-            keys=[1,1] #just random values since there are no keys fore these functions
+            trans=Transposition()
+            key=trans.key
+            keys=[key, key] #just random values since there are no keys fore these functions
+        elif method_str== "sub":
+            selfsub=Substitution()
+            keys=[selfsub.subAlphabet,selfsub.subAlphabet]
+        else:
+            keys=[1,1]
         return keys
             
     def Encrypt(method_str, message_str, pubkey):
@@ -1028,20 +1039,35 @@ class Crypto_method:
             #print("mes", message_numb)
             chiffre=RSA.Encrypt_large(message_numb, pubkey, 24) #the length 19 should be made variable in the future
         elif method_str== "trans":
-            chiffre=Transposition().encrypt_Message(message_str)
+            trans=Transposition()
+            trans.key=pubkey
+            chiffre=trans.encrypt_Message(message_str)
+        elif method_str== "sub":
+            message_str=message_str.rstrip()
+            selfsub=Substitution()
+            selfsub.subAlphabet=pubkey
+            chiffre=selfsub.encrypt_Message(message_str)
+            #print("chiffre",chiffre)
         else:
             #if the method is incorrect/ not given, there will be an identity en/decryption-
-            message_str=chiffre
+            chiffre=message_str
         return chiffre
         
     def Decrypt(method_str,chiffre,privkey):
         # I don't use self here, becouse i don't like to restrict the application of this class function
         if method_str== "rsa":
             message_str=RSA.Decrypt_large(chiffre, privkey,24)
-
             message_str=Crypto_method.Assign_charlst(message_str)
         elif method_str=="trans":
-            message_str=Transposition().decrypt_Message(message_str)
+            trans=Transposition()
+            trans.key=privkey
+            message_str=trans.decrypt_Message(chiffre)
+        elif method_str=="sub":
+            selfsub=Substitution()
+            selfsub.subAlphabet=privkey
+            message_str=selfsub.decrypt_Message(chiffre)
+            #print("decrypted",message_str)
+            message_str=message_str+"\n"
         else:
             #if the method is incorrect/ not given, there will be an identity en/decryption-
             message_str=chiffre
