@@ -1,3 +1,6 @@
+
+#This file is created by author: Stephan Bornberg
+
 #Download Python3 (debian assumed)
 
 sudo apt-get update
@@ -7,6 +10,9 @@ sudo apt-get install python3
 
 #pip install pyinstaller
 #pip3 install pyinstaller
+
+pip3 install numpy
+pip install numpy
 
 #copy project into linux file system
 

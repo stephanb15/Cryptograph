@@ -192,7 +192,11 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         pydict={"messages":message_trunc}
         jsondict=json.dumps(pydict)
         data=bytes(jsondict,encoding='utf8')
+        #remove read messages
+        self.rm_Old_mes(UserID_bob,UserID_alice)
         self.senddata(data)
+        
+        
         
     def do_GETCONTACTLIST(self):
         data=self.getdata()
@@ -222,7 +226,20 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         jsondict=json.dumps(pydict)
         dataSend=bytes(jsondict,encoding='utf8')
         self.senddata(dataSend)
-        
+    
+    def rm_Old_mes(self,UserID_bob,UserID_alice):
+        #removes messages in bob already read by alice
+        file=open(UserID_bob +'.json', 'r')
+        serverData=json.load(file)
+        serverData["message"].pop(UserID_alice)
+        serverData["message"].update({ UserID_alice: {
+                            "1999-07-03":{
+                                    "keyID": "1",
+                                    "message": ""
+                                    }
+                            }})
+        wfile=open(UserID_bob +'.json', 'w')
+        json.dump(serverData,wfile)
         
 Handler =  MyHTTPRequestHandler
 

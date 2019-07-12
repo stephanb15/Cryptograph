@@ -1,3 +1,7 @@
+
+#This file is created by author: Jakob Lanser
+import random
+
 class Substitution:
     
     def __init__(self):
