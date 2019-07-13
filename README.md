@@ -41,7 +41,7 @@ Or go in the `Cryptograph` directory and enter; \
 ## Getting Started
 So now (left-) double-click this icon (named Cryptograph). \
 If you have got problems Logging in, have a look at:
-[GUI](https://github.com/stephanb15/Cryptograph/wiki).
+[GUI](https://github.com/stephanb15/Cryptograph/wiki). \
 So assuming you could login, what you will see is a window like this:
 ![](https://github.com/stephanb15/Cryptograph/blob/master/Media/Screenshot%20from%202019-07-11%2002-05-31.png)
 
