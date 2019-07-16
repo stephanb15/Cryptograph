@@ -176,7 +176,7 @@ class GUI:
     def __init__(self):
         
         #server ip adress and port
-        self.j=ioserver("178.191.88.79","8000")
+        self.j=ioserver("188.22.60.130","8000")
         
         #initial mehtod 
         self.crypto_method="rsa"
