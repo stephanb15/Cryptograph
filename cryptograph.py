@@ -19,6 +19,13 @@ from lib.substitution import Substitution
 #                             Local FIles
 ##############################################################################
 
+def FileExtractIP():
+    wrkdir = os.path.dirname(__file__)
+    path_IP_adress=os.path.join(wrkdir,"ipadress")
+    get=open(path_IP_adress, 'r')
+    ipstring=get.read()
+    return ipstring.strip()
+
 class USRdata():
     #This is a class handling user Data
     #like decrypted Messages etc
@@ -176,7 +183,7 @@ class GUI:
     def __init__(self):
         
         #server ip adress and port
-        self.j=ioserver("188.22.60.130","8000")
+        self.j=ioserver(FileExtractIP(),"8000")
         
         #initial mehtod 
         self.crypto_method="rsa"
@@ -397,7 +404,8 @@ class GUI:
         message=self.message.get(1.0, tk.END)
         self.message.delete(1.0,tk.END)
         return message
-        
+
+    
     def login_win(self):
         
         self.login_win=tk.Tk()
