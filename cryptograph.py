@@ -410,13 +410,17 @@ class GUI:
         
         self.login_win=tk.Tk()
         self.login_win.title("Cryptograph-Login")
-        self.login_win.resizable(width=False, height=False)
+        #self.login_win.resizable(width=False, height=False)
+        #self.login_win.geometry('200x100')
+        
+        canva = tk.Canvas(self.login_win, scrollregion=(0,0,500,800), height=800, width=550)
+        frame = tk.Frame(canva)#, width=50,height=100,bd=10)
         
         #----------------------------------------------------------------------
         #Frame Head
         #----------------------------------------------------------------------
         
-        self.login_frame_head=tk.Frame(self.login_win,bd=10)
+        self.login_frame_head=tk.Frame(frame,bd=10)
         frm_h=self.login_frame_head
         self.icon_img = tk.PhotoImage(file=self.icon_path)
         photo=tk.Label(frm_h, image = self.icon_img)
@@ -432,7 +436,7 @@ class GUI:
         #Frame Options
         #----------------------------------------------------------------------
         
-        frm_o=self.login_frame_opt=tk.Frame(self.login_win,bd=10)
+        frm_o=self.login_frame_opt=tk.Frame(frame,bd=10)
         l2txt1='Username:'
         l3txt1='Password:'
         l2 = tk.Message(self.login_frame_opt, width=1000, text=l2txt1)
@@ -449,7 +453,7 @@ class GUI:
         #Frame Foot
         #----------------------------------------------------------------------
         
-        frm_f=self.login_frame_foot=tk.Frame(self.login_win,bd=10)
+        frm_f=self.login_frame_foot=tk.Frame(frame,bd=10)
         
         #initialise check variable for login
         self.login_check_bool=False
@@ -459,15 +463,30 @@ class GUI:
         
         GUImatrix.grid_vert([button,button2],1)
         
-        hline2=tk.Canvas(self.login_win, height=10)
+        hline2=tk.Canvas(frame, height=10)
         hline2.create_line(20, 5, 500, 5)
-           
+        
+        #----------------------------------------------------------------------
+        #scroll
+        #----------------------------------------------------------------------
+        
+        #https://stackoverflow.com/questions/28319226/scroll-bar-tkinter-not-scrolling
+        #https://stackoverflow.com/questions/6863921/python-tkinter-canvas-xview-units#6976347
+        
+        scrollbar=tk.Scrollbar(self.login_win, orient=tk.VERTICAL, command=canva.yview, width=15)
+        canva['yscrollcommand']=scrollbar.set
+        scrollbar.pack(side=tk.RIGHT,fill=tk.Y)
+        
         #----------------------------------------------------------------------
         #Put it together
         #----------------------------------------------------------------------
         
         self.login_str1 = tk.StringVar()
-        self.l4 = tk.Label(self.login_win, textvariable=self.login_str1)
+        self.l4 = tk.Label(frame, textvariable=self.login_str1)
+        
+        #canva["scrollregion"]=canva.bbox("all")
+        canva.pack(side=tk.LEFT,fill=tk.Y)
+        canva.create_window((0,0),window=frame,anchor='nw')
         
         GUImatrix.grid_hor([frm_h,frm_o,self.l4,hline2,frm_f],1)
         
