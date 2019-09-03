@@ -21,7 +21,8 @@ cp -r "$srcDIR" ~/.local/share
 
 #open linux file structure where the project is copyed to and make cryptograph executable
 
-chmod +x ~/.local/share/Cryptograph/cryptograph.py 
+sudo chmod +x ~/.local/share/Cryptograph/cryptograph.py
+sudo chmod +w ~/.local/share/Cryptograph
 
 #Create a .desktop file, so you will see the application in the applicaiton menue
 
